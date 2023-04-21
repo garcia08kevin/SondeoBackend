@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using MimeKit;
+using Newtonsoft.Json.Linq;
 using NLog.Fluent;
 using SondeoBackend.Context;
 using SondeoBackend.DTO;
@@ -94,6 +95,56 @@ namespace SondeoBackend.Controllers
             });
         }
         [HttpPost]
+        [Route("CurrentUser")]
+        public async Task<IActionResult> GetCurrentUser(string email)
+        {
+            if (ModelState.IsValid)
+            {
+                var user_exist = await _userManager.FindByEmailAsync(email);
+                if (user_exist == null)
+                {
+                    return BadRequest(error: new AuthResult()
+                    {
+                        Result = false,
+                        Errors = new List<string>()
+                        {
+                            "El usuario no esta registrado"
+                        }
+                    });
+                }
+                var role = await _userManager.GetRolesAsync(user_exist);
+                return Ok(new CurrentUser()
+                {
+                    Name = user_exist.Name,
+                    Lastname = user_exist.Lastname,
+                    Role = role[0]
+                });
+            }
+            return BadRequest(error: new AuthResult()
+            {
+                Result = false,
+                Errors = new List<string>()
+                        {
+                            "No se pudo obtener los datos del usuario"
+                        }
+            });
+        }
+
+        [HttpGet]
+        [Route("GetUserRole")]
+        public async Task<IActionResult> GetUserRole(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                _logger.LogInformation($"El usuario {email} no exite");
+                return BadRequest(new { error = $"El usuario {email} no exite" });
+            }
+            var roles = await _userManager.GetRolesAsync(user);
+            return Ok(roles);
+        }
+
+        [HttpPost]
         [Route("ChangePassword")]
         public async Task<IActionResult> ChangePassword([FromBody] UserVerification verification)
         {
@@ -111,6 +162,18 @@ namespace SondeoBackend.Controllers
                         }
                     });
                 }
+                var isCorrect = await _userManager.CheckPasswordAsync(user_exist, verification.OldPassword);
+                if (!isCorrect)
+                {
+                    return BadRequest(error: new AuthResult()
+                    {
+                        Result = false,
+                        Errors = new List<string>()
+                        {
+                            "Clave de usuario es incorrecta"
+                        }
+                    });
+                }
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user_exist);
                 var result = await _userManager.ResetPasswordAsync(user_exist, token,verification.Password);
                 if (result.Succeeded)
@@ -119,7 +182,14 @@ namespace SondeoBackend.Controllers
                     {
                         var user = _context.Users.First(a => a.Email == verification.Email);
                         user.CuentaActiva = true;
-                        _context.SaveChanges();
+                        //var notificacion = new Notification()
+                        //{
+                        //    tipo = 1,
+                        //    fecha = DateTime.Now,
+                        //    Mensaje = $"El usuario {user.Email} ha sido activado"
+                        //};
+                        //_context.Notifications.Add(notificacion);
+                        await _context.SaveChangesAsync();
                     }
                     return Ok(new AuthResult()
                     {
@@ -143,7 +213,7 @@ namespace SondeoBackend.Controllers
             var options = new IdentityOptions();
             var claims = new List<Claim>
             {
-                new Claim(type: "Id", value: user.Id),
+                new Claim(type: "Id", value: Convert.ToString(user.Id)),
                     new Claim(type: JwtRegisteredClaimNames.Sub, value: user.Email),
                     new Claim(type: JwtRegisteredClaimNames.Email, value: user.Email),
                     new Claim(type: JwtRegisteredClaimNames.Jti, value: Guid.NewGuid().ToString()),

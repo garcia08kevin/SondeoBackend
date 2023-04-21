@@ -1,15 +1,21 @@
-﻿namespace SondeoBackend.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace SondeoBackend.Models
 {
     public class DetalleEncuesta
     {
         public int Id { get; set; }
         public int StockInicial { get; set; }
         public int StockFinal { get; set; }
-        public decimal Pdv { get; set; }
-        public decimal Pvp { get; set; }
-        public decimal Compra { get; set; }
-        public ICollection<Producto> Productos { get; set; }
+        public float Compra { get; set; }
+        public float Pvd { get; set; }
+        public float Pvp { get; set; }
+        [ForeignKey("Encuesta")]
+
         public int EncuestaId { get; set; }
-        public Encuesta Encuesta { get; set; }
+        public Encuesta? Canal { get; set; }
+        [ForeignKey("Producto")]
+        public int ProductoId { get; set; }
+        public Producto Producto { get; set; }
     }
 }

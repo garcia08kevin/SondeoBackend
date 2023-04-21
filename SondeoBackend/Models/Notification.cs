@@ -1,0 +1,16 @@
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+
+namespace SondeoBackend.Models
+{
+    public class Notification
+    {
+        public int Id { get; set; }
+        public int tipo { get; set; }
+        public string Mensaje { get; set; }
+        public DateTime fecha { get; set; }
+        [Required]
+        [DefaultValue(false)]
+        public bool Vista { get; set; }
+    }
+}

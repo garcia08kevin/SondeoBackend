@@ -22,10 +22,13 @@ namespace SondeoBackend.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -49,7 +52,7 @@ namespace SondeoBackend.Migrations
                     b.ToTable("AspNetRoles", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -63,9 +66,8 @@ namespace SondeoBackend.Migrations
                     b.Property<string>("ClaimValue")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("RoleId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -74,7 +76,7 @@ namespace SondeoBackend.Migrations
                     b.ToTable("AspNetRoleClaims", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -88,9 +90,8 @@ namespace SondeoBackend.Migrations
                     b.Property<string>("ClaimValue")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -99,7 +100,7 @@ namespace SondeoBackend.Migrations
                     b.ToTable("AspNetUserClaims", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
                 {
                     b.Property<string>("LoginProvider")
                         .HasColumnType("nvarchar(450)");
@@ -110,9 +111,8 @@ namespace SondeoBackend.Migrations
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("LoginProvider", "ProviderKey");
 
@@ -121,13 +121,13 @@ namespace SondeoBackend.Migrations
                     b.ToTable("AspNetUserLogins", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("RoleId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
 
                     b.HasKey("UserId", "RoleId");
 
@@ -136,10 +136,10 @@ namespace SondeoBackend.Migrations
                     b.ToTable("AspNetUserRoles", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.Property<string>("LoginProvider")
                         .HasColumnType("nvarchar(450)");
@@ -163,19 +163,13 @@ namespace SondeoBackend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int>("LocalId")
-                        .HasColumnType("int");
-
                     b.Property<string>("NombreCanal")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LocalId")
-                        .IsUnique();
-
-                    b.ToTable("Canal");
+                    b.ToTable("Canales");
                 });
 
             modelBuilder.Entity("SondeoBackend.Models.Categoria", b =>
@@ -186,19 +180,13 @@ namespace SondeoBackend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<string>("Categoria_nombre")
+                    b.Property<string>("NombreCategoria")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("ProductoID")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductoID")
-                        .IsUnique();
-
-                    b.ToTable("Categoria");
+                    b.ToTable("Categorias");
                 });
 
             modelBuilder.Entity("SondeoBackend.Models.Ciudad", b =>
@@ -209,25 +197,22 @@ namespace SondeoBackend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int>("LocalId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("NombreCuidad")
+                    b.Property<string>("NombreCiudad")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LocalId")
-                        .IsUnique();
-
-                    b.ToTable("Ciudad");
+                    b.ToTable("Ciudades");
                 });
 
             modelBuilder.Entity("SondeoBackend.Models.CustomUser", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
@@ -246,11 +231,19 @@ namespace SondeoBackend.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Lastname")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -300,17 +293,20 @@ namespace SondeoBackend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<decimal>("Compra")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<float>("Compra")
+                        .HasColumnType("real");
 
                     b.Property<int>("EncuestaId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Pdv")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("int");
 
-                    b.Property<decimal>("Pvp")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<float>("Pvd")
+                        .HasColumnType("real");
+
+                    b.Property<float>("Pvp")
+                        .HasColumnType("real");
 
                     b.Property<int>("StockFinal")
                         .HasColumnType("int");
@@ -320,10 +316,11 @@ namespace SondeoBackend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EncuestaId")
-                        .IsUnique();
+                    b.HasIndex("EncuestaId");
 
-                    b.ToTable("DetalleEncuesta");
+                    b.HasIndex("ProductoId");
+
+                    b.ToTable("DetalleEncuestas");
                 });
 
             modelBuilder.Entity("SondeoBackend.Models.Encuesta", b =>
@@ -337,10 +334,6 @@ namespace SondeoBackend.Migrations
                     b.Property<int>("CustomUserId")
                         .HasColumnType("int");
 
-                    b.Property<string>("CustomUserId1")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<int>("DiasTrabajados")
                         .HasColumnType("int");
 
@@ -350,11 +343,16 @@ namespace SondeoBackend.Migrations
                     b.Property<DateTime>("FechaInicio")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("LocalId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("CustomUserId1");
+                    b.HasIndex("CustomUserId");
 
-                    b.ToTable("Encuesta");
+                    b.HasIndex("LocalId");
+
+                    b.ToTable("Encuestas");
                 });
 
             modelBuilder.Entity("SondeoBackend.Models.Local", b =>
@@ -365,12 +363,15 @@ namespace SondeoBackend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<int>("CanalId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CiudadId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Direccion")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("EncuestaId")
-                        .HasColumnType("int");
 
                     b.Property<float>("Latitud")
                         .HasColumnType("real");
@@ -384,10 +385,11 @@ namespace SondeoBackend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EncuestaId")
-                        .IsUnique();
+                    b.HasIndex("CanalId");
 
-                    b.ToTable("Local");
+                    b.HasIndex("CiudadId");
+
+                    b.ToTable("Locales");
                 });
 
             modelBuilder.Entity("SondeoBackend.Models.Marca", b =>
@@ -398,19 +400,13 @@ namespace SondeoBackend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<string>("Nombre_Marca")
+                    b.Property<string>("NombreMarca")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("ProductoID")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductoID")
-                        .IsUnique();
-
-                    b.ToTable("Marca");
+                    b.ToTable("Marcas");
                 });
 
             modelBuilder.Entity("SondeoBackend.Models.Medicion", b =>
@@ -430,10 +426,35 @@ namespace SondeoBackend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EncuestaId")
-                        .IsUnique();
+                    b.HasIndex("EncuestaId");
 
-                    b.ToTable("Medicion");
+                    b.ToTable("Mediciones");
+                });
+
+            modelBuilder.Entity("SondeoBackend.Models.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Mensaje")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Vista")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("tipo")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("SondeoBackend.Models.Producto", b =>
@@ -444,14 +465,28 @@ namespace SondeoBackend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int>("DetalleEncuestaId")
+                    b.Property<int>("CategoriaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MarcaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PropiedadesId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DetalleEncuestaId");
+                    b.HasIndex("CategoriaId");
 
-                    b.ToTable("Producto");
+                    b.HasIndex("MarcaId");
+
+                    b.HasIndex("PropiedadesId");
+
+                    b.ToTable("Productos");
                 });
 
             modelBuilder.Entity("SondeoBackend.Models.Propiedades", b =>
@@ -462,31 +497,25 @@ namespace SondeoBackend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int>("ProductoID")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Propiedades_nombre")
+                    b.Property<string>("NombrePropiedades")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductoID")
-                        .IsUnique();
-
                     b.ToTable("Propiedades");
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
                 {
                     b.HasOne("SondeoBackend.Models.CustomUser", null)
                         .WithMany()
@@ -495,7 +524,7 @@ namespace SondeoBackend.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
                 {
                     b.HasOne("SondeoBackend.Models.CustomUser", null)
                         .WithMany()
@@ -504,9 +533,9 @@ namespace SondeoBackend.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -519,97 +548,77 @@ namespace SondeoBackend.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
                 {
                     b.HasOne("SondeoBackend.Models.CustomUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("SondeoBackend.Models.Canal", b =>
-                {
-                    b.HasOne("SondeoBackend.Models.Local", "Local")
-                        .WithOne("Canal")
-                        .HasForeignKey("SondeoBackend.Models.Canal", "LocalId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Local");
-                });
-
-            modelBuilder.Entity("SondeoBackend.Models.Categoria", b =>
-                {
-                    b.HasOne("SondeoBackend.Models.Producto", "Producto")
-                        .WithOne("Categoria")
-                        .HasForeignKey("SondeoBackend.Models.Categoria", "ProductoID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Producto");
-                });
-
-            modelBuilder.Entity("SondeoBackend.Models.Ciudad", b =>
-                {
-                    b.HasOne("SondeoBackend.Models.Local", "Local")
-                        .WithOne("Ciudad")
-                        .HasForeignKey("SondeoBackend.Models.Ciudad", "LocalId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Local");
                 });
 
             modelBuilder.Entity("SondeoBackend.Models.DetalleEncuesta", b =>
                 {
-                    b.HasOne("SondeoBackend.Models.Encuesta", "Encuesta")
-                        .WithOne("DetalleEncuesta")
-                        .HasForeignKey("SondeoBackend.Models.DetalleEncuesta", "EncuestaId")
+                    b.HasOne("SondeoBackend.Models.Encuesta", "Canal")
+                        .WithMany()
+                        .HasForeignKey("EncuestaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Encuesta");
+                    b.HasOne("SondeoBackend.Models.Producto", "Producto")
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Canal");
+
+                    b.Navigation("Producto");
                 });
 
             modelBuilder.Entity("SondeoBackend.Models.Encuesta", b =>
                 {
                     b.HasOne("SondeoBackend.Models.CustomUser", "CustomUser")
-                        .WithMany("Encuestas")
-                        .HasForeignKey("CustomUserId1")
+                        .WithMany()
+                        .HasForeignKey("CustomUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SondeoBackend.Models.Local", "Local")
+                        .WithMany()
+                        .HasForeignKey("LocalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("CustomUser");
+
+                    b.Navigation("Local");
                 });
 
             modelBuilder.Entity("SondeoBackend.Models.Local", b =>
                 {
-                    b.HasOne("SondeoBackend.Models.Encuesta", "Encuesta")
-                        .WithOne("Local")
-                        .HasForeignKey("SondeoBackend.Models.Local", "EncuestaId")
+                    b.HasOne("SondeoBackend.Models.Canal", "Canal")
+                        .WithMany()
+                        .HasForeignKey("CanalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Encuesta");
-                });
-
-            modelBuilder.Entity("SondeoBackend.Models.Marca", b =>
-                {
-                    b.HasOne("SondeoBackend.Models.Producto", "Producto")
-                        .WithOne("Marca")
-                        .HasForeignKey("SondeoBackend.Models.Marca", "ProductoID")
+                    b.HasOne("SondeoBackend.Models.Ciudad", "Ciudad")
+                        .WithMany()
+                        .HasForeignKey("CiudadId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Producto");
+                    b.Navigation("Canal");
+
+                    b.Navigation("Ciudad");
                 });
 
             modelBuilder.Entity("SondeoBackend.Models.Medicion", b =>
                 {
                     b.HasOne("SondeoBackend.Models.Encuesta", "Encuesta")
-                        .WithOne("Medicion")
-                        .HasForeignKey("SondeoBackend.Models.Medicion", "EncuestaId")
+                        .WithMany()
+                        .HasForeignKey("EncuestaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -618,67 +627,29 @@ namespace SondeoBackend.Migrations
 
             modelBuilder.Entity("SondeoBackend.Models.Producto", b =>
                 {
-                    b.HasOne("SondeoBackend.Models.DetalleEncuesta", "DetalleEncuesta")
-                        .WithMany("Productos")
-                        .HasForeignKey("DetalleEncuestaId")
+                    b.HasOne("SondeoBackend.Models.Categoria", "Categoria")
+                        .WithMany()
+                        .HasForeignKey("CategoriaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("DetalleEncuesta");
-                });
-
-            modelBuilder.Entity("SondeoBackend.Models.Propiedades", b =>
-                {
-                    b.HasOne("SondeoBackend.Models.Producto", "Producto")
-                        .WithOne("Propiedades")
-                        .HasForeignKey("SondeoBackend.Models.Propiedades", "ProductoID")
+                    b.HasOne("SondeoBackend.Models.Marca", "Marca")
+                        .WithMany()
+                        .HasForeignKey("MarcaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Producto");
-                });
-
-            modelBuilder.Entity("SondeoBackend.Models.CustomUser", b =>
-                {
-                    b.Navigation("Encuestas");
-                });
-
-            modelBuilder.Entity("SondeoBackend.Models.DetalleEncuesta", b =>
-                {
-                    b.Navigation("Productos");
-                });
-
-            modelBuilder.Entity("SondeoBackend.Models.Encuesta", b =>
-                {
-                    b.Navigation("DetalleEncuesta")
+                    b.HasOne("SondeoBackend.Models.Propiedades", "Propiedades")
+                        .WithMany()
+                        .HasForeignKey("PropiedadesId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Local")
-                        .IsRequired();
+                    b.Navigation("Categoria");
 
-                    b.Navigation("Medicion")
-                        .IsRequired();
-                });
+                    b.Navigation("Marca");
 
-            modelBuilder.Entity("SondeoBackend.Models.Local", b =>
-                {
-                    b.Navigation("Canal")
-                        .IsRequired();
-
-                    b.Navigation("Ciudad")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("SondeoBackend.Models.Producto", b =>
-                {
-                    b.Navigation("Categoria")
-                        .IsRequired();
-
-                    b.Navigation("Marca")
-                        .IsRequired();
-
-                    b.Navigation("Propiedades")
-                        .IsRequired();
+                    b.Navigation("Propiedades");
                 });
 #pragma warning restore 612, 618
         }

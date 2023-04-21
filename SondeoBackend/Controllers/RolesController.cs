@@ -10,7 +10,7 @@ using System.Data;
 
 namespace SondeoBackend.Controllers
 {
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
+    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
     [Route("api/[controller]")]
     [ApiController]
     public class RolesController : ControllerBase
@@ -97,19 +97,7 @@ namespace SondeoBackend.Controllers
                 return BadRequest(new { error = "No se pudo agregar el rol" });
             }
         }
-        [HttpGet]
-        [Route("GetUserRole")]
-        public async Task<IActionResult> GetUserRole(string email)
-        {
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
-            {
-                _logger.LogInformation($"El usuario {email} no exite");
-                return BadRequest(new { error = $"El usuario {email} no exite" });
-            }
-            var roles = await _userManager.GetRolesAsync(user);
-            return Ok(roles);
-        }
+        
         [HttpPost]
         [Route("RemoveUserRole")]
         public async Task<IActionResult> RemoveUserRole(string email, string roleName)

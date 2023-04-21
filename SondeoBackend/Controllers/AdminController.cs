@@ -11,7 +11,7 @@ using SondeoBackend.Models;
 
 namespace SondeoBackend.Controllers
 {
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
+    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
     [Route("api/[controller]")]
     [ApiController]
     public class AdminController : ControllerBase
@@ -54,7 +54,9 @@ namespace SondeoBackend.Controllers
                 var new_user = new CustomUser()
                 {
                     Email = user.Email,
-                    UserName = user.Email
+                    UserName = user.Email,
+                    Name = user.Name,
+                    Lastname = user.Lastname
                 };
                 var role_exist = await _roleManager.FindByNameAsync(user.Role);
                 if (role_exist == null)
