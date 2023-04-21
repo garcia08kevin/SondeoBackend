@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SondeoBackend.Context;
+using SondeoBackend.CustomIdentity;
 using SondeoBackend.Models;
 using System.Data;
 
@@ -17,9 +18,9 @@ namespace SondeoBackend.Controllers
     {
         private readonly DataContext _context;
         private readonly UserManager<CustomUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly RoleManager<CustomRole> _roleManager;
         private readonly ILogger<RolesController> _logger;
-        public RolesController(DataContext context, UserManager<CustomUser> userManager, RoleManager<IdentityRole> roleManager, ILogger<RolesController> logger)
+        public RolesController(DataContext context, UserManager<CustomUser> userManager, RoleManager<CustomRole> roleManager, ILogger<RolesController> logger)
         {
             _context = context;
             _userManager = userManager;
@@ -40,7 +41,7 @@ namespace SondeoBackend.Controllers
             var roleExist = await _roleManager.RoleExistsAsync(name);
             if (!roleExist)
             {
-                var roleResult = await _roleManager.CreateAsync(new IdentityRole(name));
+                var roleResult = await _roleManager.CreateAsync(new CustomRole(name));
                 if (roleResult.Succeeded)
                 {
                     _logger.LogInformation($"El rol {name} ha sido a agregado correctamente");

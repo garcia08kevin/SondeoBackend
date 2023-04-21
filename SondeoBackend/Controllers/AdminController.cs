@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MimeKit;
 using SondeoBackend.Context;
+using SondeoBackend.CustomIdentity;
 using SondeoBackend.DTO;
 using SondeoBackend.Models;
 
@@ -20,10 +21,10 @@ namespace SondeoBackend.Controllers
         private readonly SignInManager<CustomUser> _signInManager;
         private readonly UserManager<CustomUser> _userManager;
         private readonly IConfiguration _configuration;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly RoleManager<CustomRole> _roleManager;
         private readonly ILogger<AuthenticationController> _logger;
 
-        public AdminController(DataContext context, SignInManager<CustomUser> signInManager, UserManager<CustomUser> userManager, IConfiguration configuration, RoleManager<IdentityRole> roleManager, ILogger<AuthenticationController> logger)
+        public AdminController(DataContext context, SignInManager<CustomUser> signInManager, UserManager<CustomUser> userManager, IConfiguration configuration, RoleManager<CustomRole> roleManager, ILogger<AuthenticationController> logger)
         {
             _context = context;
             _signInManager = signInManager;

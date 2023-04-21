@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using NLog.Web;
 using SondeoBackend.Configuration;
 using SondeoBackend.Context;
+using SondeoBackend.CustomIdentity;
 using SondeoBackend.Models;
 using System.Text;
 
@@ -63,7 +64,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddIdentity<CustomUser, IdentityRole<int>>(options => options.SignIn.RequireConfirmedAccount = false).AddEntityFrameworkStores<DataContext>()
+builder.Services.AddIdentity<CustomUser, CustomRole>(options => options.SignIn.RequireConfirmedAccount = false).AddEntityFrameworkStores<DataContext>()
     .AddTokenProvider<DataProtectorTokenProvider<CustomUser>>(TokenOptions.DefaultProvider);
 builder.Host.UseNLog();
 builder.Services.AddLogging();

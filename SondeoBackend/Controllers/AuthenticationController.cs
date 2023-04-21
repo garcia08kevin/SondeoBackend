@@ -8,6 +8,7 @@ using MimeKit;
 using Newtonsoft.Json.Linq;
 using NLog.Fluent;
 using SondeoBackend.Context;
+using SondeoBackend.CustomIdentity;
 using SondeoBackend.DTO;
 using SondeoBackend.Models;
 using System.IdentityModel.Tokens.Jwt;
@@ -24,10 +25,10 @@ namespace SondeoBackend.Controllers
         private readonly SignInManager<CustomUser> _signInManager;
         private readonly UserManager<CustomUser> _userManager;
         private readonly IConfiguration _configuration;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly RoleManager<CustomRole> _roleManager;
         private readonly ILogger<AuthenticationController> _logger;
 
-        public AuthenticationController(UserManager<CustomUser> userManager, IConfiguration configuration, SignInManager<CustomUser> signInManager, RoleManager<IdentityRole> roleManager, ILogger<AuthenticationController> logger, DataContext context)
+        public AuthenticationController(UserManager<CustomUser> userManager, IConfiguration configuration, SignInManager<CustomUser> signInManager, RoleManager<CustomRole> roleManager, ILogger<AuthenticationController> logger, DataContext context)
         {
             _context = context;
             _userManager = userManager;
