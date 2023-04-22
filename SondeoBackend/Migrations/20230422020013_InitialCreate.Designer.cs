@@ -12,7 +12,7 @@ using SondeoBackend.Context;
 namespace SondeoBackend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230421231705_InitialCreate")]
+    [Migration("20230422020013_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -127,7 +127,7 @@ namespace SondeoBackend.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("SondeoBackend.CustomIdentity.CustomRole", b =>
+            modelBuilder.Entity("SondeoBackend.Configuration.CustomRole", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -467,6 +467,9 @@ namespace SondeoBackend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<bool>("Activado")
+                        .HasColumnType("bit");
+
                     b.Property<int>("CategoriaId")
                         .HasColumnType("int");
 
@@ -510,7 +513,7 @@ namespace SondeoBackend.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
                 {
-                    b.HasOne("SondeoBackend.CustomIdentity.CustomRole", null)
+                    b.HasOne("SondeoBackend.Configuration.CustomRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -537,7 +540,7 @@ namespace SondeoBackend.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
                 {
-                    b.HasOne("SondeoBackend.CustomIdentity.CustomRole", null)
+                    b.HasOne("SondeoBackend.Configuration.CustomRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)

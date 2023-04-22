@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using SondeoBackend.CustomIdentity;
+using SondeoBackend.Configuration;
 using SondeoBackend.DTO;
 using SondeoBackend.Models;
 using System.Reflection.Emit;

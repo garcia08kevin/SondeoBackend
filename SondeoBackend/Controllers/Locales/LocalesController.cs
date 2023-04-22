@@ -8,59 +8,59 @@ using Microsoft.EntityFrameworkCore;
 using SondeoBackend.Context;
 using SondeoBackend.Models;
 
-namespace SondeoBackend.Controllers
+namespace SondeoBackend.Controllers.Locales
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CategoriasController : ControllerBase
+    public class LocalesController : ControllerBase
     {
         private readonly DataContext _context;
 
-        public CategoriasController(DataContext context)
+        public LocalesController(DataContext context)
         {
             _context = context;
         }
 
-        // GET: api/Categorias
+        // GET: api/Locales
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Categoria>>> GetCategorias()
+        public async Task<ActionResult<IEnumerable<Local>>> GetLocales()
         {
-          if (_context.Categorias == null)
+          if (_context.Locales == null)
           {
               return NotFound();
           }
-            return await _context.Categorias.ToListAsync();
+            return await _context.Locales.ToListAsync();
         }
 
-        // GET: api/Categorias/5
+        // GET: api/Locales/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Categoria>> GetCategoria(int id)
+        public async Task<ActionResult<Local>> GetLocal(int id)
         {
-          if (_context.Categorias == null)
+          if (_context.Locales == null)
           {
               return NotFound();
           }
-            var categoria = await _context.Categorias.FindAsync(id);
+            var local = await _context.Locales.FindAsync(id);
 
-            if (categoria == null)
+            if (local == null)
             {
                 return NotFound();
             }
 
-            return categoria;
+            return local;
         }
 
-        // PUT: api/Categorias/5
+        // PUT: api/Locales/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCategoria(int id, Categoria categoria)
+        public async Task<IActionResult> PutLocal(int id, Local local)
         {
-            if (id != categoria.Id)
+            if (id != local.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(categoria).State = EntityState.Modified;
+            _context.Entry(local).State = EntityState.Modified;
 
             try
             {
@@ -68,7 +68,7 @@ namespace SondeoBackend.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!CategoriaExists(id))
+                if (!LocalExists(id))
                 {
                     return NotFound();
                 }
@@ -81,44 +81,44 @@ namespace SondeoBackend.Controllers
             return NoContent();
         }
 
-        // POST: api/Categorias
+        // POST: api/Locales
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Categoria>> PostCategoria(Categoria categoria)
+        public async Task<ActionResult<Local>> PostLocal(Local local)
         {
-          if (_context.Categorias == null)
+          if (_context.Locales == null)
           {
-              return Problem("Entity set 'DataContext.Categorias'  is null.");
+              return Problem("Entity set 'DataContext.Locales'  is null.");
           }
-            _context.Categorias.Add(categoria);
+            _context.Locales.Add(local);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetCategoria", new { id = categoria.Id }, categoria);
+            return CreatedAtAction("GetLocal", new { id = local.Id }, local);
         }
 
-        // DELETE: api/Categorias/5
+        // DELETE: api/Locales/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCategoria(int id)
+        public async Task<IActionResult> DeleteLocal(int id)
         {
-            if (_context.Categorias == null)
+            if (_context.Locales == null)
             {
                 return NotFound();
             }
-            var categoria = await _context.Categorias.FindAsync(id);
-            if (categoria == null)
+            var local = await _context.Locales.FindAsync(id);
+            if (local == null)
             {
                 return NotFound();
             }
 
-            _context.Categorias.Remove(categoria);
+            _context.Locales.Remove(local);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool CategoriaExists(int id)
+        private bool LocalExists(int id)
         {
-            return (_context.Categorias?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_context.Locales?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

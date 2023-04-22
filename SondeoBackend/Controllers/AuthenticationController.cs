@@ -7,8 +7,8 @@ using Microsoft.IdentityModel.Tokens;
 using MimeKit;
 using Newtonsoft.Json.Linq;
 using NLog.Fluent;
+using SondeoBackend.Configuration;
 using SondeoBackend.Context;
-using SondeoBackend.CustomIdentity;
 using SondeoBackend.DTO;
 using SondeoBackend.Models;
 using System.IdentityModel.Tokens.Jwt;
@@ -63,7 +63,7 @@ namespace SondeoBackend.Controllers
                         Result = false,
                         Errors = new List<string>()
                         {
-                            "La contraseña debe ser cambiada"
+                            "Usuario no activado, debe cambiar su contraseña"
                         }
                     });
                 }
@@ -95,6 +95,47 @@ namespace SondeoBackend.Controllers
                         }
             });
         }
+
+        [HttpPost]
+        [Route("IsAdmin")]
+        public async Task<IActionResult> IsAdmin(string email)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(email);
+                if (user == null)
+                {
+                    _logger.LogInformation($"El usuario {email} no exite");
+                    return BadRequest(new { error = $"El usuario {email} no exite" });
+                }
+                var roles = await _userManager.GetRolesAsync(user);
+                if (roles[0].Equals("Administrador"))
+                {
+                    return Ok(new AuthResult()
+                    {
+                        Result = true,
+                        Contenido = "El usuario es Administrador"
+                    });
+                }
+                return BadRequest(error: new AuthResult()
+                {
+                    Result = false,
+                    Errors = new List<string>()
+                        {
+                            "El usuario no es Administrador"
+                        }
+                });
+            }
+            return BadRequest(error: new AuthResult()
+            {
+                Result = false,
+                Errors = new List<string>()
+                        {
+                            "No se pudo obtener los datos del usuario"
+                        }
+            });
+        }
+
         [HttpPost]
         [Route("CurrentUser")]
         public async Task<IActionResult> GetCurrentUser(string email)
@@ -183,13 +224,13 @@ namespace SondeoBackend.Controllers
                     {
                         var user = _context.Users.First(a => a.Email == verification.Email);
                         user.CuentaActiva = true;
-                        //var notificacion = new Notification()
-                        //{
-                        //    tipo = 1,
-                        //    fecha = DateTime.Now,
-                        //    Mensaje = $"El usuario {user.Email} ha sido activado"
-                        //};
-                        //_context.Notifications.Add(notificacion);
+                        var notificacion = new Notification()
+                        {
+                            tipo = 1,
+                            fecha = DateTime.Now,
+                            Mensaje = $"El usuario {user.Email} ha sido activado"
+                        };
+                        _context.Notifications.Add(notificacion);
                         await _context.SaveChangesAsync();
                     }
                     return Ok(new AuthResult()

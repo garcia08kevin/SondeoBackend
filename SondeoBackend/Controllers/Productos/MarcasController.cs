@@ -8,59 +8,59 @@ using Microsoft.EntityFrameworkCore;
 using SondeoBackend.Context;
 using SondeoBackend.Models;
 
-namespace SondeoBackend.Controllers
+namespace SondeoBackend.Controllers.Productos
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class EncuestasController : ControllerBase
+    public class MarcasController : ControllerBase
     {
         private readonly DataContext _context;
 
-        public EncuestasController(DataContext context)
+        public MarcasController(DataContext context)
         {
             _context = context;
         }
 
-        // GET: api/Encuestas
+        // GET: api/Marcas
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Encuesta>>> GetEncuestas()
+        public async Task<ActionResult<IEnumerable<Marca>>> GetMarcas()
         {
-          if (_context.Encuestas == null)
+          if (_context.Marcas == null)
           {
               return NotFound();
           }
-            return await _context.Encuestas.ToListAsync();
+            return await _context.Marcas.ToListAsync();
         }
 
-        // GET: api/Encuestas/5
+        // GET: api/Marcas/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Encuesta>> GetEncuesta(int id)
+        public async Task<ActionResult<Marca>> GetMarca(int id)
         {
-          if (_context.Encuestas == null)
+          if (_context.Marcas == null)
           {
               return NotFound();
           }
-            var encuesta = await _context.Encuestas.FindAsync(id);
+            var marca = await _context.Marcas.FindAsync(id);
 
-            if (encuesta == null)
+            if (marca == null)
             {
                 return NotFound();
             }
 
-            return encuesta;
+            return marca;
         }
 
-        // PUT: api/Encuestas/5
+        // PUT: api/Marcas/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutEncuesta(int id, Encuesta encuesta)
+        public async Task<IActionResult> PutMarca(int id, Marca marca)
         {
-            if (id != encuesta.Id)
+            if (id != marca.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(encuesta).State = EntityState.Modified;
+            _context.Entry(marca).State = EntityState.Modified;
 
             try
             {
@@ -68,7 +68,7 @@ namespace SondeoBackend.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!EncuestaExists(id))
+                if (!MarcaExists(id))
                 {
                     return NotFound();
                 }
@@ -81,44 +81,44 @@ namespace SondeoBackend.Controllers
             return NoContent();
         }
 
-        // POST: api/Encuestas
+        // POST: api/Marcas
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Encuesta>> PostEncuesta(Encuesta encuesta)
+        public async Task<ActionResult<Marca>> PostMarca(Marca marca)
         {
-          if (_context.Encuestas == null)
+          if (_context.Marcas == null)
           {
-              return Problem("Entity set 'DataContext.Encuestas'  is null.");
+              return Problem("Entity set 'DataContext.Marcas'  is null.");
           }
-            _context.Encuestas.Add(encuesta);
+            _context.Marcas.Add(marca);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetEncuesta", new { id = encuesta.Id }, encuesta);
+            return CreatedAtAction("GetMarca", new { id = marca.Id }, marca);
         }
 
-        // DELETE: api/Encuestas/5
+        // DELETE: api/Marcas/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteEncuesta(int id)
+        public async Task<IActionResult> DeleteMarca(int id)
         {
-            if (_context.Encuestas == null)
+            if (_context.Marcas == null)
             {
                 return NotFound();
             }
-            var encuesta = await _context.Encuestas.FindAsync(id);
-            if (encuesta == null)
+            var marca = await _context.Marcas.FindAsync(id);
+            if (marca == null)
             {
                 return NotFound();
             }
 
-            _context.Encuestas.Remove(encuesta);
+            _context.Marcas.Remove(marca);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool EncuestaExists(int id)
+        private bool MarcaExists(int id)
         {
-            return (_context.Encuestas?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_context.Marcas?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

@@ -277,6 +277,7 @@ namespace SondeoBackend.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nombre = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Activado = table.Column<bool>(type: "bit", nullable: false),
                     CategoriaId = table.Column<int>(type: "int", nullable: false),
                     MarcaId = table.Column<int>(type: "int", nullable: false),
                     PropiedadesId = table.Column<int>(type: "int", nullable: false)

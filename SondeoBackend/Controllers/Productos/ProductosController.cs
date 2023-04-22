@@ -7,18 +7,21 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SondeoBackend.Context;
 using SondeoBackend.Models;
+using SondeoBackend.Controllers;
 
-namespace SondeoBackend.Controllers
+namespace SondeoBackend.Controllers.Productos
 {
     [Route("api/[controller]")]
     [ApiController]
     public class ProductosController : ControllerBase
-    {
+    {        
         private readonly DataContext _context;
+        private readonly AuthenticationController _authentication;
 
-        public ProductosController(DataContext context)
+        public ProductosController(DataContext context, AuthenticationController authentication)
         {
             _context = context;
+            _authentication = authentication;
         }
 
         // GET: api/Productos
@@ -84,16 +87,24 @@ namespace SondeoBackend.Controllers
         // POST: api/Productos
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Producto>> PostProducto(Producto producto)
+        public async Task<ActionResult<Producto>> PostProducto(RegistroProducto registro)
         {
           if (_context.Productos == null)
           {
               return Problem("Entity set 'DataContext.Productos'  is null.");
           }
-            _context.Productos.Add(producto);
+            var productoEncu = new Producto()
+            {
+                Nombre = registro.Nombre,
+                CategoriaId = registro.CategoriaId,
+                MarcaId = registro.MarcaId,
+                PropiedadesId = registro.PropiedadesId,
+                Activado = false
+            };
+            _context.Productos.Add(productoEncu);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetProducto", new { id = producto.Id }, producto);
+            return CreatedAtAction("GetProducto", new { id = productoEncu.Id }, productoEncu);
         }
 
         // DELETE: api/Productos/5

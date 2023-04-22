@@ -8,59 +8,59 @@ using Microsoft.EntityFrameworkCore;
 using SondeoBackend.Context;
 using SondeoBackend.Models;
 
-namespace SondeoBackend.Controllers
+namespace SondeoBackend.Controllers.Productos
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MedicionesController : ControllerBase
+    public class CategoriasController : ControllerBase
     {
         private readonly DataContext _context;
 
-        public MedicionesController(DataContext context)
+        public CategoriasController(DataContext context)
         {
             _context = context;
         }
 
-        // GET: api/Mediciones
+        // GET: api/Categorias
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Medicion>>> GetMediciones()
+        public async Task<ActionResult<IEnumerable<Categoria>>> GetCategorias()
         {
-          if (_context.Mediciones == null)
+          if (_context.Categorias == null)
           {
               return NotFound();
           }
-            return await _context.Mediciones.ToListAsync();
+            return await _context.Categorias.ToListAsync();
         }
 
-        // GET: api/Mediciones/5
+        // GET: api/Categorias/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Medicion>> GetMedicion(int id)
+        public async Task<ActionResult<Categoria>> GetCategoria(int id)
         {
-          if (_context.Mediciones == null)
+          if (_context.Categorias == null)
           {
               return NotFound();
           }
-            var medicion = await _context.Mediciones.FindAsync(id);
+            var categoria = await _context.Categorias.FindAsync(id);
 
-            if (medicion == null)
+            if (categoria == null)
             {
                 return NotFound();
             }
 
-            return medicion;
+            return categoria;
         }
 
-        // PUT: api/Mediciones/5
+        // PUT: api/Categorias/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutMedicion(int id, Medicion medicion)
+        public async Task<IActionResult> PutCategoria(int id, Categoria categoria)
         {
-            if (id != medicion.Id)
+            if (id != categoria.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(medicion).State = EntityState.Modified;
+            _context.Entry(categoria).State = EntityState.Modified;
 
             try
             {
@@ -68,7 +68,7 @@ namespace SondeoBackend.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!MedicionExists(id))
+                if (!CategoriaExists(id))
                 {
                     return NotFound();
                 }
@@ -81,44 +81,44 @@ namespace SondeoBackend.Controllers
             return NoContent();
         }
 
-        // POST: api/Mediciones
+        // POST: api/Categorias
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Medicion>> PostMedicion(Medicion medicion)
+        public async Task<ActionResult<Categoria>> PostCategoria(Categoria categoria)
         {
-          if (_context.Mediciones == null)
+          if (_context.Categorias == null)
           {
-              return Problem("Entity set 'DataContext.Mediciones'  is null.");
+              return Problem("Entity set 'DataContext.Categorias'  is null.");
           }
-            _context.Mediciones.Add(medicion);
+            _context.Categorias.Add(categoria);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetMedicion", new { id = medicion.Id }, medicion);
+            return CreatedAtAction("GetCategoria", new { id = categoria.Id }, categoria);
         }
 
-        // DELETE: api/Mediciones/5
+        // DELETE: api/Categorias/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteMedicion(int id)
+        public async Task<IActionResult> DeleteCategoria(int id)
         {
-            if (_context.Mediciones == null)
+            if (_context.Categorias == null)
             {
                 return NotFound();
             }
-            var medicion = await _context.Mediciones.FindAsync(id);
-            if (medicion == null)
+            var categoria = await _context.Categorias.FindAsync(id);
+            if (categoria == null)
             {
                 return NotFound();
             }
 
-            _context.Mediciones.Remove(medicion);
+            _context.Categorias.Remove(categoria);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool MedicionExists(int id)
+        private bool CategoriaExists(int id)
         {
-            return (_context.Mediciones?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_context.Categorias?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

@@ -5,7 +5,6 @@ using Microsoft.IdentityModel.Tokens;
 using NLog.Web;
 using SondeoBackend.Configuration;
 using SondeoBackend.Context;
-using SondeoBackend.CustomIdentity;
 using SondeoBackend.Models;
 using System.Text;
 
@@ -78,6 +77,8 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequireUppercase = false;
     options.Password.RequiredLength = 6;
 });
+
+builder.Services.AddMvc().AddControllersAsServices();
 
 var app = builder.Build();
 
