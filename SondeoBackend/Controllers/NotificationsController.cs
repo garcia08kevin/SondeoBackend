@@ -25,21 +25,29 @@ namespace SondeoBackend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Notification>>> GetNotifications()
         {
-          if (_context.Notifications == null)
-          {
-              return NotFound();
-          }
+            if (_context.Notifications == null)
+            {
+                return NotFound();
+            }
             return await _context.Notifications.ToListAsync();
+        }
+
+        [HttpGet]
+        [Route("UltimaNotificacion")]
+        public async Task<ActionResult<Notification>> GetLastNotifications()
+        {
+            var lastValue = _context.Notifications.Where(j => j.Vista == false).OrderByDescending(e => e.Id).FirstOrDefault();
+            return lastValue;
         }
 
         // GET: api/Notifications/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Notification>> GetNotification(int id)
         {
-          if (_context.Notifications == null)
-          {
-              return NotFound();
-          }
+            if (_context.Notifications == null)
+            {
+                return NotFound();
+            }
             var notification = await _context.Notifications.FindAsync(id);
 
             if (notification == null)
@@ -50,20 +58,14 @@ namespace SondeoBackend.Controllers
             return notification;
         }
 
-        // PUT: api/Notifications/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutNotification(int id, Notification notification)
+        [Route("MarcarComoLeido")]
+        [HttpPost]
+        public async Task<IActionResult> MarcarComoLeido(int id)
         {
-            if (id != notification.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(notification).State = EntityState.Modified;
-
             try
             {
+                var notification = await _context.Notifications.FindAsync(id);
+                notification.Vista = true;
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
@@ -81,19 +83,20 @@ namespace SondeoBackend.Controllers
             return NoContent();
         }
 
-        // POST: api/Notifications
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Notification>> PostNotification(Notification notification)
+        [Route("NotificacionesNoLeidas")]
+        [HttpGet]
+        public async Task<int> NotificacionesNoLeidas ()
         {
-          if (_context.Notifications == null)
-          {
-              return Problem("Entity set 'DataContext.Notifications'  is null.");
-          }
-            _context.Notifications.Add(notification);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetNotification", new { id = notification.Id }, notification);
+            int cantidad = 0;
+            var notificaciones = await _context.Notifications.ToListAsync();
+            for (int i = 0; i < notificaciones.Count; i++)
+            {
+                if (!notificaciones[i].Vista)
+                {
+                    cantidad++;
+                }
+            }
+            return cantidad;
         }
 
         // DELETE: api/Notifications/5

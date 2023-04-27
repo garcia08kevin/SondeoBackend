@@ -103,7 +103,15 @@ namespace SondeoBackend.Controllers.Productos
             };
             _context.Productos.Add(productoEncu);
             await _context.SaveChangesAsync();
-
+            var categoriaProducto = await _context.Categorias.FindAsync(productoEncu.CategoriaId);
+            var notificacion = new Notification()
+            {
+                tipo = 2,
+                fecha = DateTime.Now,
+                Mensaje = $"El usuario {registro.Email} ha registrado el producto {productoEncu.Nombre} en la categoria {categoriaProducto.NombreCategoria}"
+            };
+            _context.Notifications.Add(notificacion);
+            await _context.SaveChangesAsync();
             return CreatedAtAction("GetProducto", new { id = productoEncu.Id }, productoEncu);
         }
 

@@ -99,6 +99,28 @@ namespace SondeoBackend.Controllers
             return BadRequest();
         }
 
+        [Route("ActivarProducto")]
+        [HttpPost]
+        public async Task<ActionResult> ActivarProducto(int id)
+        {
+            if (_context.Productos == null)
+            {
+                return NotFound();
+            }
+            var producto = await _context.Productos.FindAsync(id);
+            if (producto == null)
+            {
+                return NotFound("Producto no encontrado");
+            }
+            if (producto.Activado)
+            {
+                return Ok("El producto ya ha sido activado");
+            }
+            producto.Activado = true;
+            await _context.SaveChangesAsync();
+            return Ok("El producto esta activado");
+        }
+
         [Route("RegistrarProductoAdmin")]
         [HttpPost]
         public async Task<ActionResult<Producto>> RegistrarProductoAdmin(RegistroProducto registro)
