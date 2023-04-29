@@ -1,3 +1,4 @@
+using Microsoft.AspNet.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -68,6 +69,11 @@ builder.Services.AddIdentity<CustomUser, CustomRole>(options => options.SignIn.R
 builder.Host.UseNLog();
 builder.Services.AddLogging();
 
+builder.Services.AddSignalR().AddHubOptions<Hubs>(options =>
+{
+    options.EnableDetailedErrors = true;
+});
+
 builder.Services.Configure<IdentityOptions>(options =>
 {
     // Default Password settings.
@@ -89,11 +95,28 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors();
+app.UseCors(x => x
+           .AllowAnyMethod()
+           .AllowAnyHeader()
+           .SetIsOriginAllowed(origin => true)
+           .AllowCredentials());
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+
+app.UseRouting();
+
 app.UseAuthorization();
+
+var hubConfiguration = new HubConfiguration { EnableDetailedErrors = true };
+
+
+app.UseEndpoints(routes =>
+{
+    routes.MapControllers();
+    routes.MapHub<Hubs>("/hubs/notifications");
+});
 
 app.MapControllers();
 

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using Microsoft.AspNetCore.SignalR;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace SondeoBackend.Models
@@ -11,6 +12,14 @@ namespace SondeoBackend.Models
         public DateTime fecha { get; set; }
         [Required]
         [DefaultValue(false)]
-        public bool Vista { get; set; }
+        public bool Vista { get; set; }        
+    }
+    public class Hubs : Hub
+    {
+        public async Task SendMessage(string message)
+        {
+            await base.OnConnectedAsync();
+            await Clients.All.SendAsync("ReceiveMessage", message);
+        }
     }
 }

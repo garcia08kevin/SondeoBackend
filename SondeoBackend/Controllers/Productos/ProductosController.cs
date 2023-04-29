@@ -8,18 +8,22 @@ using Microsoft.EntityFrameworkCore;
 using SondeoBackend.Context;
 using SondeoBackend.Models;
 using SondeoBackend.Controllers;
+using SondeoBackend.Configuration;
+using Microsoft.AspNetCore.SignalR;
 
 namespace SondeoBackend.Controllers.Productos
 {
     [Route("api/[controller]")]
     [ApiController]
     public class ProductosController : ControllerBase
-    {        
+    {
         private readonly DataContext _context;
         private readonly AuthenticationController _authentication;
+        private readonly IHubContext<Hubs> _hubs;
 
-        public ProductosController(DataContext context, AuthenticationController authentication)
+        public ProductosController(DataContext context, AuthenticationController authentication, IHubContext<Hubs> hubs)
         {
+            _hubs = hubs;
             _context = context;
             _authentication = authentication;
         }
@@ -28,10 +32,10 @@ namespace SondeoBackend.Controllers.Productos
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Producto>>> GetProductos()
         {
-          if (_context.Productos == null)
-          {
-              return NotFound();
-          }
+            if (_context.Productos == null)
+            {
+                return NotFound();
+            }
             return await _context.Productos.ToListAsync();
         }
 
@@ -39,10 +43,10 @@ namespace SondeoBackend.Controllers.Productos
         [HttpGet("{id}")]
         public async Task<ActionResult<Producto>> GetProducto(int id)
         {
-          if (_context.Productos == null)
-          {
-              return NotFound();
-          }
+            if (_context.Productos == null)
+            {
+                return NotFound();
+            }
             var producto = await _context.Productos.FindAsync(id);
 
             if (producto == null)
@@ -89,10 +93,10 @@ namespace SondeoBackend.Controllers.Productos
         [HttpPost]
         public async Task<ActionResult<Producto>> PostProducto(RegistroProducto registro)
         {
-          if (_context.Productos == null)
-          {
-              return Problem("Entity set 'DataContext.Productos'  is null.");
-          }
+            if (_context.Productos == null)
+            {
+                return Problem("Entity set 'DataContext.Productos'  is null.");
+            }
             var productoEncu = new Producto()
             {
                 Nombre = registro.Nombre,
@@ -104,13 +108,15 @@ namespace SondeoBackend.Controllers.Productos
             _context.Productos.Add(productoEncu);
             await _context.SaveChangesAsync();
             var categoriaProducto = await _context.Categorias.FindAsync(productoEncu.CategoriaId);
+            var mensajeNotificacion = $"El usuario {registro.Email} ha registrado el producto {productoEncu.Nombre} en la categoria {categoriaProducto.NombreCategoria}";
             var notificacion = new Notification()
             {
                 tipo = 2,
                 fecha = DateTime.Now,
-                Mensaje = $"El usuario {registro.Email} ha registrado el producto {productoEncu.Nombre} en la categoria {categoriaProducto.NombreCategoria}"
+                Mensaje = mensajeNotificacion
             };
             _context.Notifications.Add(notificacion);
+            await _hubs.Clients.All.SendAsync("ReceiveMessage", mensajeNotificacion);
             await _context.SaveChangesAsync();
             return CreatedAtAction("GetProducto", new { id = productoEncu.Id }, productoEncu);
         }
