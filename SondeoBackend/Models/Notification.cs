@@ -21,5 +21,10 @@ namespace SondeoBackend.Models
             await base.OnConnectedAsync();
             await Clients.All.SendAsync("ReceiveMessage", message);
         }
+        public async Task SendMessageInt(int value)
+        {
+            await base.OnConnectedAsync();
+            await Clients.All.SendAsync("nroNotificaciones", value);
+        }
     }
 }

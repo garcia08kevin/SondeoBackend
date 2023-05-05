@@ -83,7 +83,9 @@ namespace SondeoBackend.Controllers
                         await _userManager.AddToRoleAsync(new_user, user.Role);
                         return Ok(new AuthResult()
                         {
-                            Contenido = $"El usuario a sido generado con exito esta es su clave temporal {pass_generate}"
+                            Result = true,
+                            Token = pass_generate,
+                            Contenido = "El usuario a sido generado con exito esta es su clave temporal"
                         });
                     }
                     return BadRequest(error: new AuthResult()
@@ -98,6 +100,73 @@ namespace SondeoBackend.Controllers
             }
             return BadRequest();
         }
+         //La seleccion 1 desactivia el usuario, la 0 lo activa
+        [HttpPost]
+        [Route("ActivarUsuario")]
+        public async Task<bool> ActivarUsuario(string email, int seleccion)
+        {
+            if (ModelState.IsValid)
+            {
+                var user_exist = await _userManager.FindByEmailAsync(email);
+                if (user_exist == null)
+                {
+                    return false;
+                }
+                var user = _context.Users.First(a => a.Email == email);
+                if(seleccion == 1)
+                {
+                    user.CuentaActiva = false;
+                    await _context.SaveChangesAsync();
+                    return true;
+                }
+                user.CuentaActiva = true;
+                var notificacion = new Notification()
+                {
+                    tipo = 1,
+                    fecha = DateTime.Now,
+                    Mensaje = $"El usuario {user.Email} ha sido activado"
+                };
+                _context.Notifications.Add(notificacion);
+                await _context.SaveChangesAsync();
+                return true;
+
+            }
+            return false;
+        }
+
+        [HttpGet]
+        [Route("GetAllUsers")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _userManager.Users.ToListAsync();
+            return Ok(users);
+        }
+
+        [HttpDelete]
+        [Route("RemoveUser")]
+        public async Task<IActionResult> RemoveUser(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                _logger.LogInformation($"El usuario {email} no exite");
+                return BadRequest(new { error = $"El usuario {email} no exite" });
+            }
+            var result = await _userManager.DeleteAsync(user);
+            if (result.Succeeded)
+            {
+                return Ok(new
+                {
+                    result = "Se ha Eliminado el Usuario"
+                });
+            }
+            else
+            {
+                _logger.LogInformation("No se pudo eliminar el usuario");
+                return BadRequest(new { error = "No se pudo eliminar el usuario" });
+            }
+        }
+
 
         [Route("ActivarProducto")]
         [HttpPost]
@@ -121,9 +190,9 @@ namespace SondeoBackend.Controllers
             return Ok("El producto esta activado");
         }
 
-        [Route("RegistrarProductoAdmin")]
+        [Route("RegistrarProducto")]
         [HttpPost]
-        public async Task<ActionResult<Producto>> RegistrarProductoAdmin(RegistroProducto registro)
+        public async Task<ActionResult<Producto>> RegistrarProducto(RegistroProducto registro)
         {
             if (_context.Productos == null)
             {
@@ -142,55 +211,7 @@ namespace SondeoBackend.Controllers
 
             return CreatedAtAction("GetProducto", new { id = productoAdmin.Id }, productoAdmin);
         }
-
-        public static string GenerateRandomPassword(PasswordOptions opts = null)
-        {
-            if (opts == null) opts = new PasswordOptions()
-            {
-                RequiredLength = 8,
-                RequiredUniqueChars = 4,
-                RequireDigit = true,
-                RequireLowercase = true,
-                RequireNonAlphanumeric = true,
-                RequireUppercase = true
-            };
-
-            string[] randomChars = new[] {
-            "ABCDEFGHJKLMNOPQRSTUVWXYZ",    // uppercase 
-            "abcdefghijkmnopqrstuvwxyz",    // lowercase
-            "0123456789",                   // digits
-            "!@$?_-"                        // non-alphanumeric
-        };
-
-            Random rand = new Random(Environment.TickCount);
-            List<char> chars = new List<char>();
-
-            if (opts.RequireUppercase)
-                chars.Insert(rand.Next(0, chars.Count),
-                    randomChars[0][rand.Next(0, randomChars[0].Length)]);
-
-            if (opts.RequireLowercase)
-                chars.Insert(rand.Next(0, chars.Count),
-                    randomChars[1][rand.Next(0, randomChars[1].Length)]);
-
-            if (opts.RequireDigit)
-                chars.Insert(rand.Next(0, chars.Count),
-                    randomChars[2][rand.Next(0, randomChars[2].Length)]);
-
-            if (opts.RequireNonAlphanumeric)
-                chars.Insert(rand.Next(0, chars.Count),
-                    randomChars[3][rand.Next(0, randomChars[3].Length)]);
-
-            for (int i = chars.Count; i < opts.RequiredLength
-                || chars.Distinct().Count() < opts.RequiredUniqueChars; i++)
-            {
-                string rcs = randomChars[rand.Next(0, randomChars.Length)];
-                chars.Insert(rand.Next(0, chars.Count),
-                    rcs[rand.Next(0, rcs.Length)]);
-            }
-
-            return new string(chars.ToArray());
-        }
+        
         [HttpGet]
         [Route("GetAllRoles")]
         public IActionResult GetAllRoles()
@@ -198,6 +219,7 @@ namespace SondeoBackend.Controllers
             var roles = _roleManager.Roles.ToList();
             return Ok(roles);
         }
+
         [HttpPost]
         [Route("CreateRole")]
         public async Task<IActionResult> CreateRoles(string name)
@@ -225,13 +247,21 @@ namespace SondeoBackend.Controllers
             }
             return BadRequest(new { error = "El Rol no exite" });
         }
+
         [HttpGet]
-        [Route("GetAllUsers")]
-        public async Task<IActionResult> GetAllUsers()
+        [Route("GetUserRole")]
+        public async Task<IActionResult> GetUserRole(int id)
         {
-            var users = await _userManager.Users.ToListAsync();
-            return Ok(users);
+            var user = await _userManager.FindByIdAsync(Convert.ToString(id));
+            if (user == null)
+            {
+                _logger.LogInformation($"El usuario no exite");
+                return BadRequest(new { error = $"El usuario  no exite" });
+            }
+            var roles = await _userManager.GetRolesAsync(user);
+            return Ok(roles);
         }
+
         [HttpPost]
         [Route("AddUserRole")]
         public async Task<IActionResult> AddUserRole(string email, string roleName)
@@ -292,31 +322,7 @@ namespace SondeoBackend.Controllers
                 _logger.LogInformation("No se pudo retirar el rol");
                 return BadRequest(new { error = "No se pudo retirar el rol" });
             }
-        }
-        [HttpDelete]
-        [Route("RemoveUser")]
-        public async Task<IActionResult> RemoveUser(string email)
-        {
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
-            {
-                _logger.LogInformation($"El usuario {email} no exite");
-                return BadRequest(new { error = $"El usuario {email} no exite" });
-            }
-            var result = await _userManager.DeleteAsync(user);
-            if (result.Succeeded)
-            {
-                return Ok(new
-                {
-                    result = "Se ha Eliminado el Usuario"
-                });
-            }
-            else
-            {
-                _logger.LogInformation("No se pudo eliminar el usuario");
-                return BadRequest(new { error = "No se pudo eliminar el usuario" });
-            }
-        }
+        }        
 
         public static void SendEmail(string body, string destinatario, string subject)
         {
@@ -331,6 +337,55 @@ namespace SondeoBackend.Controllers
             smtp.Authenticate("bradley.emard@ethereal.email", "HRja57PgmHAFRamyPw");
             smtp.Send(email);
             smtp.Disconnect(true);
+        }
+
+        public static string GenerateRandomPassword(PasswordOptions opts = null)
+        {
+            if (opts == null) opts = new PasswordOptions()
+            {
+                RequiredLength = 8,
+                RequiredUniqueChars = 4,
+                RequireDigit = true,
+                RequireLowercase = true,
+                RequireNonAlphanumeric = true,
+                RequireUppercase = true
+            };
+
+            string[] randomChars = new[] {
+            "ABCDEFGHJKLMNOPQRSTUVWXYZ",    // uppercase 
+            "abcdefghijkmnopqrstuvwxyz",    // lowercase
+            "0123456789",                   // digits
+            "!@$?_-"                        // non-alphanumeric
+        };
+
+            Random rand = new Random(Environment.TickCount);
+            List<char> chars = new List<char>();
+
+            if (opts.RequireUppercase)
+                chars.Insert(rand.Next(0, chars.Count),
+                    randomChars[0][rand.Next(0, randomChars[0].Length)]);
+
+            if (opts.RequireLowercase)
+                chars.Insert(rand.Next(0, chars.Count),
+                    randomChars[1][rand.Next(0, randomChars[1].Length)]);
+
+            if (opts.RequireDigit)
+                chars.Insert(rand.Next(0, chars.Count),
+                    randomChars[2][rand.Next(0, randomChars[2].Length)]);
+
+            if (opts.RequireNonAlphanumeric)
+                chars.Insert(rand.Next(0, chars.Count),
+                    randomChars[3][rand.Next(0, randomChars[3].Length)]);
+
+            for (int i = chars.Count; i < opts.RequiredLength
+                || chars.Distinct().Count() < opts.RequiredUniqueChars; i++)
+            {
+                string rcs = randomChars[rand.Next(0, randomChars.Length)];
+                chars.Insert(rand.Next(0, chars.Count),
+                    rcs[rand.Next(0, rcs.Length)]);
+            }
+
+            return new string(chars.ToArray());
         }
     }
 }

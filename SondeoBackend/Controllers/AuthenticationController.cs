@@ -27,9 +27,11 @@ namespace SondeoBackend.Controllers
         private readonly IConfiguration _configuration;
         private readonly RoleManager<CustomRole> _roleManager;
         private readonly ILogger<AuthenticationController> _logger;
+        private readonly AdminController _adminController;
 
-        public AuthenticationController(UserManager<CustomUser> userManager, IConfiguration configuration, SignInManager<CustomUser> signInManager, RoleManager<CustomRole> roleManager, ILogger<AuthenticationController> logger, DataContext context)
+        public AuthenticationController(UserManager<CustomUser> userManager, IConfiguration configuration, SignInManager<CustomUser> signInManager, RoleManager<CustomRole> roleManager, ILogger<AuthenticationController> logger, DataContext context, AdminController adminController)
         {
+            _adminController = adminController;
             _context = context;
             _userManager = userManager;
             _configuration = configuration;
@@ -184,7 +186,7 @@ namespace SondeoBackend.Controllers
             }
             var roles = await _userManager.GetRolesAsync(user);
             return Ok(roles);
-        }
+        }        
 
         [HttpPost]
         [Route("ChangePassword")]
@@ -222,19 +224,11 @@ namespace SondeoBackend.Controllers
                 {
                     if (!user_exist.CuentaActiva)
                     {
-                        var user = _context.Users.First(a => a.Email == verification.Email);
-                        user.CuentaActiva = true;
-                        var notificacion = new Notification()
-                        {
-                            tipo = 1,
-                            fecha = DateTime.Now,
-                            Mensaje = $"El usuario {user.Email} ha sido activado"
-                        };
-                        _context.Notifications.Add(notificacion);
-                        await _context.SaveChangesAsync();
+                        await _adminController.ActivarUsuario(user_exist.Email,0);
                     }
                     return Ok(new AuthResult()
                     {
+                        Result = true,
                         Contenido = "La contraseña ha sido cambiada exitosamente"
                     });
                 }                

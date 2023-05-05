@@ -21,7 +21,6 @@ namespace SondeoBackend.Controllers
             _context = context;
         }
 
-        // GET: api/Notifications
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Notification>>> GetNotifications()
         {
@@ -29,33 +28,7 @@ namespace SondeoBackend.Controllers
             {
                 return NotFound();
             }
-            return await _context.Notifications.ToListAsync();
-        }
-
-        [HttpGet]
-        [Route("UltimaNotificacion")]
-        public async Task<ActionResult<Notification>> GetLastNotifications()
-        {
-            var lastValue = _context.Notifications.Where(j => j.Vista == false).OrderByDescending(e => e.Id).FirstOrDefault();
-            return lastValue;
-        }
-
-        // GET: api/Notifications/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Notification>> GetNotification(int id)
-        {
-            if (_context.Notifications == null)
-            {
-                return NotFound();
-            }
-            var notification = await _context.Notifications.FindAsync(id);
-
-            if (notification == null)
-            {
-                return NotFound();
-            }
-
-            return notification;
+            return await _context.Notifications.OrderByDescending(p => p.fecha).ToListAsync();
         }
 
         [Route("MarcarComoLeido")]
@@ -65,6 +38,11 @@ namespace SondeoBackend.Controllers
             try
             {
                 var notification = await _context.Notifications.FindAsync(id);
+                if (notification.Vista)
+                {
+                    notification.Vista = false;
+                    await _context.SaveChangesAsync();
+                }
                 notification.Vista = true;
                 await _context.SaveChangesAsync();
             }
@@ -83,7 +61,7 @@ namespace SondeoBackend.Controllers
             return NoContent();
         }
 
-        [Route("NotificacionesNoLeidas")]
+        [Route("NoLeidas")]
         [HttpGet]
         public async Task<int> NotificacionesNoLeidas ()
         {
@@ -99,7 +77,6 @@ namespace SondeoBackend.Controllers
             return cantidad;
         }
 
-        // DELETE: api/Notifications/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteNotification(int id)
         {

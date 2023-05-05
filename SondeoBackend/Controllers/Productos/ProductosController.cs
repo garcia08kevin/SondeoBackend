@@ -20,15 +20,16 @@ namespace SondeoBackend.Controllers.Productos
         private readonly DataContext _context;
         private readonly AuthenticationController _authentication;
         private readonly IHubContext<Hubs> _hubs;
+        private readonly NotificationsController _notificationsController;
 
-        public ProductosController(DataContext context, AuthenticationController authentication, IHubContext<Hubs> hubs)
+        public ProductosController(DataContext context, AuthenticationController authentication, IHubContext<Hubs> hubs, NotificationsController notificationsController)
         {
+            _notificationsController= notificationsController;
             _hubs = hubs;
             _context = context;
             _authentication = authentication;
         }
 
-        // GET: api/Productos
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Producto>>> GetProductos()
         {
@@ -39,7 +40,6 @@ namespace SondeoBackend.Controllers.Productos
             return await _context.Productos.ToListAsync();
         }
 
-        // GET: api/Productos/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Producto>> GetProducto(int id)
         {
@@ -57,8 +57,6 @@ namespace SondeoBackend.Controllers.Productos
             return producto;
         }
 
-        // PUT: api/Productos/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProducto(int id, Producto producto)
         {
@@ -88,8 +86,6 @@ namespace SondeoBackend.Controllers.Productos
             return NoContent();
         }
 
-        // POST: api/Productos
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Producto>> PostProducto(RegistroProducto registro)
         {
@@ -117,11 +113,11 @@ namespace SondeoBackend.Controllers.Productos
             };
             _context.Notifications.Add(notificacion);
             await _hubs.Clients.All.SendAsync("ReceiveMessage", mensajeNotificacion);
+            await _hubs.Clients.All.SendAsync("nroNotificaciones", _notificationsController.NotificacionesNoLeidas());
             await _context.SaveChangesAsync();
             return CreatedAtAction("GetProducto", new { id = productoEncu.Id }, productoEncu);
         }
 
-        // DELETE: api/Productos/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProducto(int id)
         {
