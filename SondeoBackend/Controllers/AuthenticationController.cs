@@ -14,6 +14,7 @@ using SondeoBackend.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Web.Helpers;
 
 namespace SondeoBackend.Controllers
 {
@@ -100,47 +101,22 @@ namespace SondeoBackend.Controllers
 
         [HttpPost]
         [Route("IsAdmin")]
-        public async Task<IActionResult> IsAdmin(string email)
+        public bool IsAdmin([FromBody] AuthResult user)
         {
-            if (ModelState.IsValid)
+            var handler = new JwtSecurityTokenHandler();
+            var jwtSecurityToken = handler.ReadJwtToken(user.Token);
+            var role = jwtSecurityToken.Claims.FirstOrDefault(c => c.Type == "role");
+            if (role.Value.Equals("Administrador"))
             {
-                var user = await _userManager.FindByEmailAsync(email);
-                if (user == null)
-                {
-                    _logger.LogInformation($"El usuario {email} no exite");
-                    return BadRequest(new { error = $"El usuario {email} no exite" });
-                }
-                var roles = await _userManager.GetRolesAsync(user);
-                if (roles[0].Equals("Administrador"))
-                {
-                    return Ok(new AuthResult()
-                    {
-                        Result = true,
-                        Contenido = "El usuario es Administrador"
-                    });
-                }
-                return BadRequest(error: new AuthResult()
-                {
-                    Result = false,
-                    Errors = new List<string>()
-                        {
-                            "El usuario no es Administrador"
-                        }
-                });
+                return true;
             }
-            return BadRequest(error: new AuthResult()
-            {
-                Result = false,
-                Errors = new List<string>()
-                        {
-                            "No se pudo obtener los datos del usuario"
-                        }
-            });
+            return false;
+
         }
 
         [HttpPost]
-        [Route("CurrentUser")]
-        public async Task<IActionResult> GetCurrentUser(string email)
+        [Route("UserDetail")]
+        public async Task<IActionResult> UserDetail(string email)
         {
             if (ModelState.IsValid)
             {
@@ -157,7 +133,7 @@ namespace SondeoBackend.Controllers
                     });
                 }
                 var role = await _userManager.GetRolesAsync(user_exist);
-                return Ok(new CurrentUser()
+                return Ok(new UserDetail()
                 {
                     Name = user_exist.Name,
                     Lastname = user_exist.Lastname,
@@ -174,19 +150,43 @@ namespace SondeoBackend.Controllers
             });
         }
 
-        [HttpGet]
-        [Route("GetUserRole")]
-        public async Task<IActionResult> GetUserRole(string email)
+        [HttpPost]
+        [Route("UserDetailById")]
+        public async Task<IActionResult> UserDetailById(int id)
         {
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
+            if (ModelState.IsValid)
             {
-                _logger.LogInformation($"El usuario {email} no exite");
-                return BadRequest(new { error = $"El usuario {email} no exite" });
+                var user_exist = await _userManager.FindByIdAsync(Convert.ToString(id));
+                if (user_exist == null)
+                {
+                    return BadRequest(error: new AuthResult()
+                    {
+                        Result = false,
+                        Errors = new List<string>()
+                        {
+                            "El usuario no esta registrado"
+                        }
+                    });
+                }
+                var role = await _userManager.GetRolesAsync(user_exist);
+                return Ok(new UserDetail()
+                {
+                    Name = user_exist.Name,
+                    Lastname = user_exist.Lastname,
+                    Role = role[0],
+                    Email = user_exist.Email,
+                    Activado = user_exist.CuentaActiva
+                });
             }
-            var roles = await _userManager.GetRolesAsync(user);
-            return Ok(roles);
-        }        
+            return BadRequest(error: new AuthResult()
+            {
+                Result = false,
+                Errors = new List<string>()
+                        {
+                            "No se pudo obtener los datos del usuario"
+                        }
+            });
+        }
 
         [HttpPost]
         [Route("ChangePassword")]
@@ -224,7 +224,7 @@ namespace SondeoBackend.Controllers
                 {
                     if (!user_exist.CuentaActiva)
                     {
-                        await _adminController.ActivarUsuario(user_exist.Email,0);
+                        await _adminController.ActivarUsuario(user_exist.Email,true);
                     }
                     return Ok(new AuthResult()
                     {

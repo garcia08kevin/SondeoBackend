@@ -103,7 +103,7 @@ namespace SondeoBackend.Controllers
          //La seleccion 1 desactivia el usuario, la 0 lo activa
         [HttpPost]
         [Route("ActivarUsuario")]
-        public async Task<bool> ActivarUsuario(string email, int seleccion)
+        public async Task<bool> ActivarUsuario(string email, bool eleccion)
         {
             if (ModelState.IsValid)
             {
@@ -113,7 +113,7 @@ namespace SondeoBackend.Controllers
                     return false;
                 }
                 var user = _context.Users.First(a => a.Email == email);
-                if(seleccion == 1)
+                if(!eleccion)
                 {
                     user.CuentaActiva = false;
                     await _context.SaveChangesAsync();
@@ -144,26 +144,29 @@ namespace SondeoBackend.Controllers
 
         [HttpDelete]
         [Route("RemoveUser")]
-        public async Task<IActionResult> RemoveUser(string email)
+        public async Task<IActionResult> RemoveUser(int id)
         {
-            var user = await _userManager.FindByEmailAsync(email);
+            var user = await _userManager.FindByIdAsync(Convert.ToString(id));
             if (user == null)
             {
-                _logger.LogInformation($"El usuario {email} no exite");
-                return BadRequest(new { error = $"El usuario {email} no exite" });
+                _logger.LogInformation($"El usuario no exite");
+                return BadRequest(new AuthResult { 
+                    Result = false,
+                    Contenido = $"El usuario no exite" });
             }
             var result = await _userManager.DeleteAsync(user);
             if (result.Succeeded)
             {
-                return Ok(new
+                return Ok(new AuthResult
                 {
-                    result = "Se ha Eliminado el Usuario"
+                    Result = true,
+                    Contenido = "Se ha Eliminado el Usuario"
                 });
             }
             else
             {
                 _logger.LogInformation("No se pudo eliminar el usuario");
-                return BadRequest(new { error = "No se pudo eliminar el usuario" });
+                return BadRequest(new AuthResult { Contenido = "No se pudo eliminar el usuario" });
             }
         }
 
