@@ -64,6 +64,8 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddScoped(typeof(GenericRepository<>));
+
 builder.Services.AddIdentity<CustomUser, CustomRole>(options => options.SignIn.RequireConfirmedAccount = false).AddEntityFrameworkStores<DataContext>()
     .AddTokenProvider<DataProtectorTokenProvider<CustomUser>>(TokenOptions.DefaultProvider);
 builder.Host.UseNLog();

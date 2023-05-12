@@ -4,9 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using MimeKit;
-using Newtonsoft.Json.Linq;
-using NLog.Fluent;
 using SondeoBackend.Configuration;
 using SondeoBackend.Context;
 using SondeoBackend.DTO;
@@ -14,8 +11,7 @@ using SondeoBackend.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Web.Helpers;
-
+ 
 namespace SondeoBackend.Controllers
 {
     [Route("api/[controller]")]

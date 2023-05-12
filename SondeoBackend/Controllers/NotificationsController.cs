@@ -35,29 +35,15 @@ namespace SondeoBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> MarcarComoLeido(int id)
         {
-            try
+            var notification = await _context.Notifications.FindAsync(id);
+            if (!notification.Vista)
             {
-                var notification = await _context.Notifications.FindAsync(id);
-                if (notification.Vista)
-                {
-                    notification.Vista = false;
-                    await _context.SaveChangesAsync();
-                }
                 notification.Vista = true;
                 await _context.SaveChangesAsync();
+                return NoContent();
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!NotificationExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
+            notification.Vista = false;
+            await _context.SaveChangesAsync();
             return NoContent();
         }
 

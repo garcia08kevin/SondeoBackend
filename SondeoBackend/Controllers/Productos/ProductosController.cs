@@ -37,7 +37,7 @@ namespace SondeoBackend.Controllers.Productos
             {
                 return NotFound();
             }
-            return await _context.Productos.ToListAsync();
+            return await _context.Productos.Include(e=> e.Marca).Include(e=> e.Categoria).Include(e=>e.Propiedades).ToListAsync();
         }
 
         [HttpGet("{id}")]
@@ -47,14 +47,26 @@ namespace SondeoBackend.Controllers.Productos
             {
                 return NotFound();
             }
-            var producto = await _context.Productos.FindAsync(id);
+            var producto = await _context.Productos.FindAsync(id);            
 
             if (producto == null)
             {
                 return NotFound();
             }
+            var categoria = await _context.Categorias.FindAsync(producto.CategoriaId);
+            var marca = await _context.Marcas.FindAsync(producto.MarcaId);
+            var propiedad = await _context.Propiedades.FindAsync(producto.PropiedadesId);
 
-            return producto;
+            var productoF = new Producto()
+            {
+                Id = producto.Id,
+                Activado = producto.Activado,
+                Nombre = producto.Nombre,
+                Categoria = categoria,
+                Marca = marca,
+                Propiedades = propiedad,
+            };
+            return productoF;
         }
 
         [HttpPut("{id}")]
@@ -116,26 +128,7 @@ namespace SondeoBackend.Controllers.Productos
             await _hubs.Clients.All.SendAsync("nroNotificaciones", _notificationsController.NotificacionesNoLeidas());
             await _context.SaveChangesAsync();
             return CreatedAtAction("GetProducto", new { id = productoEncu.Id }, productoEncu);
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProducto(int id)
-        {
-            if (_context.Productos == null)
-            {
-                return NotFound();
-            }
-            var producto = await _context.Productos.FindAsync(id);
-            if (producto == null)
-            {
-                return NotFound();
-            }
-
-            _context.Productos.Remove(producto);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
+        }        
 
         private bool ProductoExists(int id)
         {

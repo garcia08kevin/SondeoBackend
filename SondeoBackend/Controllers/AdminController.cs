@@ -166,7 +166,7 @@ namespace SondeoBackend.Controllers
             else
             {
                 _logger.LogInformation("No se pudo eliminar el usuario");
-                return BadRequest(new AuthResult { Contenido = "No se pudo eliminar el usuario" });
+                return BadRequest(new AuthResult { Result = false, Contenido = "No se pudo eliminar el usuario" });
             }
         }
 
@@ -177,20 +177,30 @@ namespace SondeoBackend.Controllers
         {
             if (_context.Productos == null)
             {
-                return NotFound();
+                return BadRequest(new AuthResult { Result = false, Contenido = "No se pudo encontrar el producto" });
             }
             var producto = await _context.Productos.FindAsync(id);
             if (producto == null)
             {
-                return NotFound("Producto no encontrado");
+                return BadRequest(new AuthResult { Result = false, Contenido = "No se pudo encontrar el producto" });
             }
             if (producto.Activado)
             {
-                return Ok("El producto ya ha sido activado");
+                producto.Activado = false;
+                await _context.SaveChangesAsync();
+                return Ok(new AuthResult
+                {
+                    Result = true,
+                    Contenido = "Se ha desactivado el producto correctamente"
+                });
             }
             producto.Activado = true;
             await _context.SaveChangesAsync();
-            return Ok("El producto esta activado");
+            return Ok(new AuthResult
+            {
+                Result = true,
+                Contenido = "Se ha activado el producto correctamente"
+            });
         }
 
         [Route("RegistrarProducto")]
@@ -214,7 +224,30 @@ namespace SondeoBackend.Controllers
 
             return CreatedAtAction("GetProducto", new { id = productoAdmin.Id }, productoAdmin);
         }
-        
+
+        [HttpDelete("DeleteProduct/{id}")]
+        public async Task<IActionResult> DeleteProduct(int id)
+        {
+            if (_context.Productos == null)
+            {
+                return NotFound();
+            }
+            var producto = await _context.Productos.FindAsync(id);
+            if (producto == null)
+            {
+                return BadRequest(new AuthResult { Result = false, Contenido = "No se pudo encontrar el producto" });
+            }
+
+            _context.Productos.Remove(producto);
+            await _context.SaveChangesAsync();
+
+            return Ok(new AuthResult
+            {
+                Result = true,
+                Contenido = "Se ha Eliminado el producto"
+            });
+        }
+
         [HttpGet]
         [Route("GetAllRoles")]
         public IActionResult GetAllRoles()
