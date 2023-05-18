@@ -106,6 +106,19 @@ namespace SondeoBackend.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Mes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    NombreMes = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Mes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Notifications",
                 columns: table => new
                 {
@@ -271,41 +284,6 @@ namespace SondeoBackend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Productos",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Activado = table.Column<bool>(type: "bit", nullable: false),
-                    CategoriaId = table.Column<int>(type: "int", nullable: false),
-                    MarcaId = table.Column<int>(type: "int", nullable: false),
-                    PropiedadesId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Productos", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Productos_Categorias_CategoriaId",
-                        column: x => x.CategoriaId,
-                        principalTable: "Categorias",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Productos_Marcas_MarcaId",
-                        column: x => x.MarcaId,
-                        principalTable: "Marcas",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Productos_Propiedades_PropiedadesId",
-                        column: x => x.PropiedadesId,
-                        principalTable: "Propiedades",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Encuestas",
                 columns: table => new
                 {
@@ -357,12 +335,6 @@ namespace SondeoBackend.Migrations
                         principalTable: "Encuestas",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_DetalleEncuestas_Productos_ProductoId",
-                        column: x => x.ProductoId,
-                        principalTable: "Productos",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -371,7 +343,7 @@ namespace SondeoBackend.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    NombreMedicion = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MesId = table.Column<int>(type: "int", nullable: false),
                     EncuestaId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -381,6 +353,60 @@ namespace SondeoBackend.Migrations
                         name: "FK_Mediciones_Encuestas_EncuestaId",
                         column: x => x.EncuestaId,
                         principalTable: "Encuestas",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Mediciones_Mes_MesId",
+                        column: x => x.MesId,
+                        principalTable: "Mes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Productos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Activado = table.Column<bool>(type: "bit", nullable: false),
+                    CategoriaId = table.Column<int>(type: "int", nullable: false),
+                    MarcaId = table.Column<int>(type: "int", nullable: false),
+                    PropiedadesId = table.Column<int>(type: "int", nullable: false),
+                    CustomUserId = table.Column<int>(type: "int", nullable: false),
+                    ProductoId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Productos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Productos_AspNetUsers_CustomUserId",
+                        column: x => x.CustomUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Productos_Categorias_CategoriaId",
+                        column: x => x.CategoriaId,
+                        principalTable: "Categorias",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Productos_DetalleEncuestas_ProductoId",
+                        column: x => x.ProductoId,
+                        principalTable: "DetalleEncuestas",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Productos_Marcas_MarcaId",
+                        column: x => x.MarcaId,
+                        principalTable: "Marcas",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Productos_Propiedades_PropiedadesId",
+                        column: x => x.PropiedadesId,
+                        principalTable: "Propiedades",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -430,11 +456,6 @@ namespace SondeoBackend.Migrations
                 column: "EncuestaId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DetalleEncuestas_ProductoId",
-                table: "DetalleEncuestas",
-                column: "ProductoId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Encuestas_CustomUserId",
                 table: "Encuestas",
                 column: "CustomUserId");
@@ -460,14 +481,29 @@ namespace SondeoBackend.Migrations
                 column: "EncuestaId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Mediciones_MesId",
+                table: "Mediciones",
+                column: "MesId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Productos_CategoriaId",
                 table: "Productos",
                 column: "CategoriaId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Productos_CustomUserId",
+                table: "Productos",
+                column: "CustomUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Productos_MarcaId",
                 table: "Productos",
                 column: "MarcaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Productos_ProductoId",
+                table: "Productos",
+                column: "ProductoId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Productos_PropiedadesId",
@@ -493,31 +529,34 @@ namespace SondeoBackend.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "DetalleEncuestas");
-
-            migrationBuilder.DropTable(
                 name: "Mediciones");
 
             migrationBuilder.DropTable(
                 name: "Notifications");
 
             migrationBuilder.DropTable(
-                name: "AspNetRoles");
-
-            migrationBuilder.DropTable(
                 name: "Productos");
 
             migrationBuilder.DropTable(
-                name: "Encuestas");
+                name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "Mes");
 
             migrationBuilder.DropTable(
                 name: "Categorias");
+
+            migrationBuilder.DropTable(
+                name: "DetalleEncuestas");
 
             migrationBuilder.DropTable(
                 name: "Marcas");
 
             migrationBuilder.DropTable(
                 name: "Propiedades");
+
+            migrationBuilder.DropTable(
+                name: "Encuestas");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

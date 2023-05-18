@@ -9,11 +9,12 @@ namespace SondeoBackend.Models
         public DateTime FechaInicio { get; set; }
         public DateTime FechaCierre { get; set; }
         public int DiasTrabajados { get; set; }
-        [ForeignKey("CustomUser")]
+        [ForeignKey("CustomUserId")]
+        public CustomUser? CustomUser { get; set; }
         public int CustomUserId { get; set; }
-        public CustomUser CustomUser { get; set; }
-        [ForeignKey("Encuesta")]
+
+        [ForeignKey("LocalId")]
+        public Local? Local { get; set; }
         public int LocalId { get; set; }
-        public Local Local { get; set; }
     }
 }

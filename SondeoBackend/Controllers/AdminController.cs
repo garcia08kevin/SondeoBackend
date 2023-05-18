@@ -24,9 +24,11 @@ namespace SondeoBackend.Controllers
         private readonly IConfiguration _configuration;
         private readonly RoleManager<CustomRole> _roleManager;
         private readonly ILogger<AuthenticationController> _logger;
+        private readonly RolesController _roles;
 
-        public AdminController(DataContext context, SignInManager<CustomUser> signInManager, UserManager<CustomUser> userManager, IConfiguration configuration, RoleManager<CustomRole> roleManager, ILogger<AuthenticationController> logger)
+        public AdminController(DataContext context, RolesController roles , SignInManager<CustomUser> signInManager, UserManager<CustomUser> userManager, IConfiguration configuration, RoleManager<CustomRole> roleManager, ILogger<AuthenticationController> logger)
         {
+            _roles = roles;
             _context = context;
             _signInManager = signInManager;
             _userManager = userManager;
@@ -100,7 +102,33 @@ namespace SondeoBackend.Controllers
             }
             return BadRequest();
         }
-         //La seleccion 1 desactivia el usuario, la 0 lo activa
+         //La seleccion 1 desactivia el usuario, la 0 lo activa        
+
+        [HttpGet]
+        [Route("GetAllUsers")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _userManager.Users.ToListAsync();
+            return Ok(users);
+        }
+
+        [HttpGet]
+        [Route("GetAllUserByRole")]
+        public async Task<IActionResult> GetAllUserByRole(string role)
+        {
+            List<CustomUser> users = new List<CustomUser>();
+            var usuariosActivados = await _userManager.Users.Where(e=>e.CuentaActiva == true).ToListAsync();
+            for (int i = 0; i < usuariosActivados.Count; i++)
+            {
+                var userRole = await _userManager.GetRolesAsync(usuariosActivados[i]);
+                if (userRole[0].Equals(role))
+                {
+                    users.Add(usuariosActivados[i]);
+                }
+            }
+            return Ok(users);
+        }       
+
         [HttpPost]
         [Route("ActivarUsuario")]
         public async Task<bool> ActivarUsuario(string email, bool eleccion)
@@ -113,33 +141,18 @@ namespace SondeoBackend.Controllers
                     return false;
                 }
                 var user = _context.Users.First(a => a.Email == email);
-                if(!eleccion)
+                if (!eleccion)
                 {
                     user.CuentaActiva = false;
                     await _context.SaveChangesAsync();
                     return true;
                 }
                 user.CuentaActiva = true;
-                var notificacion = new Notification()
-                {
-                    tipo = 1,
-                    fecha = DateTime.Now,
-                    Mensaje = $"El usuario {user.Email} ha sido activado"
-                };
-                _context.Notifications.Add(notificacion);
                 await _context.SaveChangesAsync();
                 return true;
 
             }
             return false;
-        }
-
-        [HttpGet]
-        [Route("GetAllUsers")]
-        public async Task<IActionResult> GetAllUsers()
-        {
-            var users = await _userManager.Users.ToListAsync();
-            return Ok(users);
         }
 
         [HttpDelete]
@@ -168,197 +181,7 @@ namespace SondeoBackend.Controllers
                 _logger.LogInformation("No se pudo eliminar el usuario");
                 return BadRequest(new AuthResult { Result = false, Contenido = "No se pudo eliminar el usuario" });
             }
-        }
-
-
-        [Route("ActivarProducto")]
-        [HttpPost]
-        public async Task<ActionResult> ActivarProducto(int id)
-        {
-            if (_context.Productos == null)
-            {
-                return BadRequest(new AuthResult { Result = false, Contenido = "No se pudo encontrar el producto" });
-            }
-            var producto = await _context.Productos.FindAsync(id);
-            if (producto == null)
-            {
-                return BadRequest(new AuthResult { Result = false, Contenido = "No se pudo encontrar el producto" });
-            }
-            if (producto.Activado)
-            {
-                producto.Activado = false;
-                await _context.SaveChangesAsync();
-                return Ok(new AuthResult
-                {
-                    Result = true,
-                    Contenido = "Se ha desactivado el producto correctamente"
-                });
-            }
-            producto.Activado = true;
-            await _context.SaveChangesAsync();
-            return Ok(new AuthResult
-            {
-                Result = true,
-                Contenido = "Se ha activado el producto correctamente"
-            });
-        }
-
-        [Route("RegistrarProducto")]
-        [HttpPost]
-        public async Task<ActionResult<Producto>> RegistrarProducto(RegistroProducto registro)
-        {
-            if (_context.Productos == null)
-            {
-                return Problem("Entity set 'DataContext.Productos'  is null.");
-            }
-            var productoAdmin = new Producto()
-            {
-                Nombre = registro.Nombre,
-                CategoriaId = registro.CategoriaId,
-                MarcaId = registro.MarcaId,
-                PropiedadesId = registro.PropiedadesId,
-                Activado = true
-            };
-            _context.Productos.Add(productoAdmin);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetProducto", new { id = productoAdmin.Id }, productoAdmin);
-        }
-
-        [HttpDelete("DeleteProduct/{id}")]
-        public async Task<IActionResult> DeleteProduct(int id)
-        {
-            if (_context.Productos == null)
-            {
-                return NotFound();
-            }
-            var producto = await _context.Productos.FindAsync(id);
-            if (producto == null)
-            {
-                return BadRequest(new AuthResult { Result = false, Contenido = "No se pudo encontrar el producto" });
-            }
-
-            _context.Productos.Remove(producto);
-            await _context.SaveChangesAsync();
-
-            return Ok(new AuthResult
-            {
-                Result = true,
-                Contenido = "Se ha Eliminado el producto"
-            });
-        }
-
-        [HttpGet]
-        [Route("GetAllRoles")]
-        public IActionResult GetAllRoles()
-        {
-            var roles = _roleManager.Roles.ToList();
-            return Ok(roles);
-        }
-
-        [HttpPost]
-        [Route("CreateRole")]
-        public async Task<IActionResult> CreateRoles(string name)
-        {
-            var roleExist = await _roleManager.RoleExistsAsync(name);
-            if (!roleExist)
-            {
-                var roleResult = await _roleManager.CreateAsync(new CustomRole(name));
-                if (roleResult.Succeeded)
-                {
-                    _logger.LogInformation($"El rol {name} ha sido a agregado correctamente");
-                    return Ok(new
-                    {
-                        result = $"El rol {name} ha sido a agregado correctamente"
-                    });
-                }
-                else
-                {
-                    _logger.LogInformation($"El rol {name} no pudo ser creado");
-                    return Ok(new
-                    {
-                        error = $"El rol {name} no pudo ser creado"
-                    });
-                }
-            }
-            return BadRequest(new { error = "El Rol no exite" });
-        }
-
-        [HttpGet]
-        [Route("GetUserRole")]
-        public async Task<IActionResult> GetUserRole(int id)
-        {
-            var user = await _userManager.FindByIdAsync(Convert.ToString(id));
-            if (user == null)
-            {
-                _logger.LogInformation($"El usuario no exite");
-                return BadRequest(new { error = $"El usuario  no exite" });
-            }
-            var roles = await _userManager.GetRolesAsync(user);
-            return Ok(roles);
-        }
-
-        [HttpPost]
-        [Route("AddUserRole")]
-        public async Task<IActionResult> AddUserRole(string email, string roleName)
-        {
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
-            {
-                _logger.LogInformation($"El usuario {email} no exite");
-                return BadRequest(new { error = $"El usuario {email} no exite" });
-            }
-            var roleExist = await _roleManager.RoleExistsAsync(roleName);
-            if (!roleExist)
-            {
-                _logger.LogInformation($"El rol {roleName} no exite");
-                return BadRequest(new { error = $"El rol {roleName} no exite" });
-            }
-            var result = await _userManager.AddToRoleAsync(user, roleName);
-            if (result.Succeeded)
-            {
-                return Ok(new
-                {
-                    result = "Role agregado correctamente"
-                });
-            }
-            else
-            {
-                _logger.LogInformation("No se pudo agregar el rol");
-                return BadRequest(new { error = "No se pudo agregar el rol" });
-            }
-        }
-
-        [HttpPost]
-        [Route("RemoveUserRole")]
-        public async Task<IActionResult> RemoveUserRole(string email, string roleName)
-        {
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
-            {
-                _logger.LogInformation($"El usuario {email} no exite");
-                return BadRequest(new { error = $"El usuario {email} no exite" });
-            }
-            var roleExist = await _roleManager.RoleExistsAsync(roleName);
-            if (!roleExist)
-            {
-                _logger.LogInformation($"El rol {roleName} no exite");
-                return BadRequest(new { error = $"El rol {roleName} no exite" });
-            }
-            var result = await _userManager.RemoveFromRoleAsync(user, roleName);
-            if (result.Succeeded)
-            {
-                return Ok(new
-                {
-                    result = "Se ha retirado el rol correctamente"
-                });
-            }
-            else
-            {
-                _logger.LogInformation("No se pudo retirar el rol");
-                return BadRequest(new { error = "No se pudo retirar el rol" });
-            }
-        }        
+        }                   
 
         public static void SendEmail(string body, string destinatario, string subject)
         {

@@ -10,6 +10,7 @@ namespace SondeoBackend.Models
         public int tipo { get; set; }
         public string Mensaje { get; set; }
         public DateTime fecha { get; set; }
+        public int Identificacion { get; set; }
         [Required]
         [DefaultValue(false)]
         public bool Vista { get; set; }        
@@ -19,7 +20,7 @@ namespace SondeoBackend.Models
         public async Task SendMessage(string message)
         {
             await base.OnConnectedAsync();
-            await Clients.All.SendAsync("ReceiveMessage", message);
+            await Clients.All.SendAsync("Notificacion", message);
         }
         public async Task SendMessageInt(int value)
         {

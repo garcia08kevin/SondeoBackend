@@ -10,12 +10,11 @@ namespace SondeoBackend.Models
         public float Compra { get; set; }
         public float Pvd { get; set; }
         public float Pvp { get; set; }
-        [ForeignKey("Encuesta")]
-
-        public int EncuestaId { get; set; }
+        [ForeignKey("EncuestaId")]        
         public Encuesta? Canal { get; set; }
-        [ForeignKey("Producto")]
+        public int EncuestaId { get; set; }
+        [ForeignKey("ProductoId")]
+        public ICollection<Producto>? Productos { get; set; }
         public int ProductoId { get; set; }
-        public Producto Producto { get; set; }
     }
 }

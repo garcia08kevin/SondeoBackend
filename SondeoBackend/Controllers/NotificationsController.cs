@@ -81,10 +81,5 @@ namespace SondeoBackend.Controllers
 
             return NoContent();
         }
-
-        private bool NotificationExists(int id)
-        {
-            return (_context.Notifications?.Any(e => e.Id == id)).GetValueOrDefault();
-        }
     }
 }

@@ -7,27 +7,25 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SondeoBackend.Context;
 using SondeoBackend.Models;
-using SondeoBackend.Controllers;
 using SondeoBackend.Configuration;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Identity;
 
-namespace SondeoBackend.Controllers.Productos
+namespace SondeoBackend.Controllers.Productos.Encuestador
 {
     [Route("api/[controller]")]
     [ApiController]
     public class ProductosController : ControllerBase
     {
         private readonly DataContext _context;
-        private readonly AuthenticationController _authentication;
         private readonly IHubContext<Hubs> _hubs;
-        private readonly NotificationsController _notificationsController;
+        private readonly UserManager<CustomUser> _userManager;
 
-        public ProductosController(DataContext context, AuthenticationController authentication, IHubContext<Hubs> hubs, NotificationsController notificationsController)
+        public ProductosController(DataContext context, IHubContext<Hubs> hubs, UserManager<CustomUser> userManager)
         {
-            _notificationsController= notificationsController;
+            _userManager = userManager;
             _hubs = hubs;
             _context = context;
-            _authentication = authentication;
         }
 
         [HttpGet]
@@ -37,7 +35,7 @@ namespace SondeoBackend.Controllers.Productos
             {
                 return NotFound();
             }
-            return await _context.Productos.Include(e=> e.Marca).Include(e=> e.Categoria).Include(e=>e.Propiedades).ToListAsync();
+            return await _context.Productos.Where(e=> e.Activado == true).Include(e => e.Marca).Include(e => e.Categoria).Include(e => e.Propiedades).ToListAsync();
         }
 
         [HttpGet("{id}")]
@@ -47,7 +45,7 @@ namespace SondeoBackend.Controllers.Productos
             {
                 return NotFound();
             }
-            var producto = await _context.Productos.FindAsync(id);            
+            var producto = await _context.Productos.FindAsync(id);
 
             if (producto == null)
             {
@@ -101,34 +99,46 @@ namespace SondeoBackend.Controllers.Productos
         [HttpPost]
         public async Task<ActionResult<Producto>> PostProducto(RegistroProducto registro)
         {
-            if (_context.Productos == null)
-            {
-                return Problem("Entity set 'DataContext.Productos'  is null.");
-            }
-            var productoEncu = new Producto()
+            var producto = new Producto()
             {
                 Nombre = registro.Nombre,
                 CategoriaId = registro.CategoriaId,
                 MarcaId = registro.MarcaId,
                 PropiedadesId = registro.PropiedadesId,
-                Activado = false
-            };
-            _context.Productos.Add(productoEncu);
-            await _context.SaveChangesAsync();
-            var categoriaProducto = await _context.Categorias.FindAsync(productoEncu.CategoriaId);
-            var mensajeNotificacion = $"El usuario {registro.Email} ha registrado el producto {productoEncu.Nombre} en la categoria {categoriaProducto.NombreCategoria}";
-            var notificacion = new Notification()
+                Activado = false,
+                CustomUserId = registro.CustomUserId
+            };           
+            var user = await _userManager.FindByIdAsync(Convert.ToString(registro.CustomUserId));
+            var categoriaProducto = await _context.Categorias.FindAsync(producto.CategoriaId);
+            if (user != null && categoriaProducto != null ) {
+                _context.Productos.Add(producto);
+                await _context.SaveChangesAsync();
+                var mensajeNotificacion = $"El usuario {user.Name} {user.Lastname} ha registrado el producto {producto.Nombre} en la categoria {categoriaProducto.NombreCategoria}";
+                var notificacion = new Notification()
+                {
+                    tipo = 2,
+                    fecha = DateTime.Now,
+                    Mensaje = mensajeNotificacion,
+                    Identificacion = producto.Id
+                };
+                _context.Notifications.Add(notificacion);
+                await _hubs.Clients.All.SendAsync("Notificacion", mensajeNotificacion);
+                await _context.SaveChangesAsync();
+                return Ok(new AuthResult()
+                {
+                    Result = true,
+                    Contenido = "Producto creado correctamente"
+                });
+            }
+            return BadRequest(error: new AuthResult()
             {
-                tipo = 2,
-                fecha = DateTime.Now,
-                Mensaje = mensajeNotificacion
-            };
-            _context.Notifications.Add(notificacion);
-            await _hubs.Clients.All.SendAsync("ReceiveMessage", mensajeNotificacion);
-            await _hubs.Clients.All.SendAsync("nroNotificaciones", _notificationsController.NotificacionesNoLeidas());
-            await _context.SaveChangesAsync();
-            return CreatedAtAction("GetProducto", new { id = productoEncu.Id }, productoEncu);
-        }        
+                Result = false,
+                Errors = new List<string>()
+                        {
+                            "No se pudo crear el producto"
+                        }
+            });
+        }
 
         private bool ProductoExists(int id)
         {

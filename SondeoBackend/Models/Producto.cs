@@ -6,19 +6,22 @@ namespace SondeoBackend.Models
     public class Producto
     {
         public int Id { get; set; }
-        public string Nombre { get; set; }
+        public string? Nombre { get; set; }
         [DefaultValue(false)]
         public bool Activado { get; set; }
-        [ForeignKey("Categoria")]
-        public int CategoriaId { get; set; }
+        [ForeignKey("CategoriaId")]        
         public Categoria? Categoria { get; set; }
-        [ForeignKey("Marca")]
-
-        public int MarcaId { get; set; }
+        public int CategoriaId { get; set; }
+        [ForeignKey("MarcaId")]
         public Marca? Marca { get; set; }
-        [ForeignKey("Propiedades")]
+        public int MarcaId { get; set; }
 
-        public int PropiedadesId { get; set; }
+        [ForeignKey("PropiedadesId")]
         public Propiedades? Propiedades { get; set; }
+        public int PropiedadesId { get; set; }
+
+        [ForeignKey("CustomUserId")]
+        public CustomUser? User { get; set; }
+        public int CustomUserId { get; set; }
     }
 }

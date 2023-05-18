@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -24,11 +25,11 @@ namespace SondeoBackend.Controllers
         private readonly IConfiguration _configuration;
         private readonly RoleManager<CustomRole> _roleManager;
         private readonly ILogger<AuthenticationController> _logger;
-        private readonly AdminController _adminController;
+        private readonly IHubContext<Hubs> _hubs;
 
-        public AuthenticationController(UserManager<CustomUser> userManager, IConfiguration configuration, SignInManager<CustomUser> signInManager, RoleManager<CustomRole> roleManager, ILogger<AuthenticationController> logger, DataContext context, AdminController adminController)
+        public AuthenticationController(UserManager<CustomUser> userManager, IHubContext<Hubs> hubs, IConfiguration configuration, SignInManager<CustomUser> signInManager, RoleManager<CustomRole> roleManager, ILogger<AuthenticationController> logger, DataContext context)
         {
-            _adminController = adminController;
+            _hubs = hubs;
             _context = context;
             _userManager = userManager;
             _configuration = configuration;
@@ -54,6 +55,18 @@ namespace SondeoBackend.Controllers
                             "Usuario No registrado"
                         }
                     });
+                }                
+                if (!user_exist.EmailConfirmed)
+                {
+                    return BadRequest(error: new AuthResult()
+                    {
+                        Result = false,
+                        Errors = new List<string>()
+                        {
+                            "FirstLogin",
+                            "Debes cambiar tu contraseña"
+                        }
+                    });
                 }
                 if (!user_exist.CuentaActiva)
                 {
@@ -62,7 +75,7 @@ namespace SondeoBackend.Controllers
                         Result = false,
                         Errors = new List<string>()
                         {
-                            "Usuario no activado, debe cambiar su contraseña"
+                            "Tu usuario ha sido bloqueado"
                         }
                     });
                 }
@@ -96,27 +109,15 @@ namespace SondeoBackend.Controllers
         }
 
         [HttpPost]
-        [Route("IsAdmin")]
-        public bool IsAdmin([FromBody] AuthResult user)
-        {
-            var handler = new JwtSecurityTokenHandler();
-            var jwtSecurityToken = handler.ReadJwtToken(user.Token);
-            var role = jwtSecurityToken.Claims.FirstOrDefault(c => c.Type == "role");
-            if (role.Value.Equals("Administrador"))
-            {
-                return true;
-            }
-            return false;
-
-        }
-
-        [HttpPost]
-        [Route("UserDetail")]
-        public async Task<IActionResult> UserDetail(string email)
+        [Route("CurrentUser")]
+        public async Task<IActionResult> CurrentUser([FromBody] AuthResult user)
         {
             if (ModelState.IsValid)
             {
-                var user_exist = await _userManager.FindByEmailAsync(email);
+                var handler = new JwtSecurityTokenHandler();
+                var jwtSecurityToken = handler.ReadJwtToken(user.Token);
+                var email = jwtSecurityToken.Claims.FirstOrDefault(c => c.Type == "email");
+                var user_exist = await _userManager.FindByEmailAsync(email.Value);
                 if (user_exist == null)
                 {
                     return BadRequest(error: new AuthResult()
@@ -131,9 +132,13 @@ namespace SondeoBackend.Controllers
                 var role = await _userManager.GetRolesAsync(user_exist);
                 return Ok(new UserDetail()
                 {
+                    Id = user_exist.Id,
                     Name = user_exist.Name,
                     Lastname = user_exist.Lastname,
-                    Role = role[0]
+                    Role = role[0],
+                    Email = user_exist.Email,
+                    Activado = user_exist.CuentaActiva,
+                    CorreoActivado = user_exist.EmailConfirmed
                 });
             }
             return BadRequest(error: new AuthResult()
@@ -171,7 +176,8 @@ namespace SondeoBackend.Controllers
                     Lastname = user_exist.Lastname,
                     Role = role[0],
                     Email = user_exist.Email,
-                    Activado = user_exist.CuentaActiva
+                    Activado = user_exist.CuentaActiva,
+                    CorreoActivado = user_exist.EmailConfirmed
                 });
             }
             return BadRequest(error: new AuthResult()
@@ -183,6 +189,21 @@ namespace SondeoBackend.Controllers
                         }
             });
         }
+
+        //[HttpPost]
+        //[Route("IsAdmin")]
+        //public bool IsAdmin([FromBody] AuthResult user)
+        //{
+        //    var handler = new JwtSecurityTokenHandler();
+        //    var jwtSecurityToken = handler.ReadJwtToken(user.Token);
+        //    var role = jwtSecurityToken.Claims.FirstOrDefault(c => c.Type == "role");
+        //    if (role.Value.Equals("Administrador"))
+        //    {
+        //        return true;
+        //    }
+        //    return false;
+
+        //}        
 
         [HttpPost]
         [Route("ChangePassword")]
@@ -218,9 +239,20 @@ namespace SondeoBackend.Controllers
                 var result = await _userManager.ResetPasswordAsync(user_exist, token,verification.Password);
                 if (result.Succeeded)
                 {
-                    if (!user_exist.CuentaActiva)
+                    if (!user_exist.EmailConfirmed)
                     {
-                        await _adminController.ActivarUsuario(user_exist.Email,true);
+                        user_exist.EmailConfirmed = true;
+                        var notificacion = new Notification()
+                        {
+                            tipo = 1,
+                            fecha = DateTime.Now,
+                            Mensaje = $"El usuario {user_exist.Email} ha activado su cuenta",
+                            Identificacion = user_exist.Id
+                        };
+                        _context.Notifications.Add(notificacion);
+                        await _context.SaveChangesAsync();
+                        await _hubs.Clients.All.SendAsync("Notificacion", notificacion.Mensaje);
+
                     }
                     return Ok(new AuthResult()
                     {
