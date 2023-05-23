@@ -10,9 +10,8 @@ namespace SondeoBackend.Models
         [DefaultValue(true)]
         public bool CuentaActiva { get; set; }
         [Required]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         [Required]
-        public string Lastname { get; set; }
-        //public ICollection<Encuesta> Encuestas { get; set; }
+        public string? Lastname { get; set; }
     }
 }

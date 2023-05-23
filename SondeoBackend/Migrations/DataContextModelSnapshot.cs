@@ -157,14 +157,13 @@ namespace SondeoBackend.Migrations
 
             modelBuilder.Entity("SondeoBackend.Models.Canal", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int?>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int?>("Id"), 1L, 1);
 
                     b.Property<string>("NombreCanal")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -174,14 +173,13 @@ namespace SondeoBackend.Migrations
 
             modelBuilder.Entity("SondeoBackend.Models.Categoria", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int?>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int?>("Id"), 1L, 1);
 
                     b.Property<string>("NombreCategoria")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -191,14 +189,13 @@ namespace SondeoBackend.Migrations
 
             modelBuilder.Entity("SondeoBackend.Models.Ciudad", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int?>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int?>("Id"), 1L, 1);
 
                     b.Property<string>("NombreCiudad")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -287,31 +284,28 @@ namespace SondeoBackend.Migrations
 
             modelBuilder.Entity("SondeoBackend.Models.DetalleEncuesta", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int?>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int?>("Id"), 1L, 1);
 
-                    b.Property<float>("Compra")
+                    b.Property<float?>("Compra")
                         .HasColumnType("real");
 
-                    b.Property<int>("EncuestaId")
+                    b.Property<int?>("EncuestaId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ProductoId")
-                        .HasColumnType("int");
-
-                    b.Property<float>("Pvd")
+                    b.Property<float?>("Pvd")
                         .HasColumnType("real");
 
-                    b.Property<float>("Pvp")
+                    b.Property<float?>("Pvp")
                         .HasColumnType("real");
 
-                    b.Property<int>("StockFinal")
+                    b.Property<int?>("StockFinal")
                         .HasColumnType("int");
 
-                    b.Property<int>("StockInicial")
+                    b.Property<int?>("StockInicial")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -323,16 +317,16 @@ namespace SondeoBackend.Migrations
 
             modelBuilder.Entity("SondeoBackend.Models.Encuesta", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int?>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int?>("Id"), 1L, 1);
 
-                    b.Property<int>("CustomUserId")
+                    b.Property<int?>("CustomUserId")
                         .HasColumnType("int");
 
-                    b.Property<int>("DiasTrabajados")
+                    b.Property<int?>("DiasTrabajados")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("FechaCierre")
@@ -341,7 +335,7 @@ namespace SondeoBackend.Migrations
                     b.Property<DateTime>("FechaInicio")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("LocalId")
+                    b.Property<int?>("LocalId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -355,30 +349,28 @@ namespace SondeoBackend.Migrations
 
             modelBuilder.Entity("SondeoBackend.Models.Local", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int?>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int?>("Id"), 1L, 1);
 
-                    b.Property<int>("CanalId")
+                    b.Property<int?>("CanalId")
                         .HasColumnType("int");
 
-                    b.Property<int>("CiudadId")
+                    b.Property<int?>("CiudadId")
                         .HasColumnType("int");
 
                     b.Property<string>("Direccion")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<float>("Latitud")
+                    b.Property<float?>("Latitud")
                         .HasColumnType("real");
 
-                    b.Property<float>("Longitud")
+                    b.Property<float?>("Longitud")
                         .HasColumnType("real");
 
                     b.Property<string>("Nombre")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -392,14 +384,13 @@ namespace SondeoBackend.Migrations
 
             modelBuilder.Entity("SondeoBackend.Models.Marca", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int?>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int?>("Id"), 1L, 1);
 
                     b.Property<string>("NombreMarca")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -409,64 +400,53 @@ namespace SondeoBackend.Migrations
 
             modelBuilder.Entity("SondeoBackend.Models.Medicion", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int?>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int?>("Id"), 1L, 1);
 
-                    b.Property<int>("EncuestaId")
+                    b.Property<bool>("Activada")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("EncuestaId")
                         .HasColumnType("int");
 
-                    b.Property<int>("MesId")
+                    b.Property<int?>("Month")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Year")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("EncuestaId");
 
-                    b.HasIndex("MesId");
-
                     b.ToTable("Mediciones");
-                });
-
-            modelBuilder.Entity("SondeoBackend.Models.Mes", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<string>("NombreMes")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Mes");
                 });
 
             modelBuilder.Entity("SondeoBackend.Models.Notification", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int?>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int?>("Id"), 1L, 1);
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("Identificacion")
+                        .HasColumnType("int");
 
                     b.Property<string>("Mensaje")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Tipo")
+                        .HasColumnType("int");
 
                     b.Property<bool>("Vista")
                         .HasColumnType("bit");
-
-                    b.Property<DateTime>("fecha")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("tipo")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -490,14 +470,14 @@ namespace SondeoBackend.Migrations
                     b.Property<int>("CustomUserId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("DetalleEncuestaId")
+                        .HasColumnType("int");
+
                     b.Property<int>("MarcaId")
                         .HasColumnType("int");
 
                     b.Property<string>("Nombre")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ProductoId")
-                        .HasColumnType("int");
 
                     b.Property<int>("PropiedadesId")
                         .HasColumnType("int");
@@ -508,9 +488,9 @@ namespace SondeoBackend.Migrations
 
                     b.HasIndex("CustomUserId");
 
-                    b.HasIndex("MarcaId");
+                    b.HasIndex("DetalleEncuestaId");
 
-                    b.HasIndex("ProductoId");
+                    b.HasIndex("MarcaId");
 
                     b.HasIndex("PropiedadesId");
 
@@ -519,14 +499,13 @@ namespace SondeoBackend.Migrations
 
             modelBuilder.Entity("SondeoBackend.Models.Propiedades", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int?>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int?>("Id"), 1L, 1);
 
                     b.Property<string>("NombrePropiedades")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -587,28 +566,22 @@ namespace SondeoBackend.Migrations
 
             modelBuilder.Entity("SondeoBackend.Models.DetalleEncuesta", b =>
                 {
-                    b.HasOne("SondeoBackend.Models.Encuesta", "Canal")
+                    b.HasOne("SondeoBackend.Models.Encuesta", "Encuesta")
                         .WithMany()
-                        .HasForeignKey("EncuestaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("EncuestaId");
 
-                    b.Navigation("Canal");
+                    b.Navigation("Encuesta");
                 });
 
             modelBuilder.Entity("SondeoBackend.Models.Encuesta", b =>
                 {
                     b.HasOne("SondeoBackend.Models.CustomUser", "CustomUser")
                         .WithMany()
-                        .HasForeignKey("CustomUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CustomUserId");
 
                     b.HasOne("SondeoBackend.Models.Local", "Local")
                         .WithMany()
-                        .HasForeignKey("LocalId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("LocalId");
 
                     b.Navigation("CustomUser");
 
@@ -619,15 +592,11 @@ namespace SondeoBackend.Migrations
                 {
                     b.HasOne("SondeoBackend.Models.Canal", "Canal")
                         .WithMany()
-                        .HasForeignKey("CanalId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CanalId");
 
                     b.HasOne("SondeoBackend.Models.Ciudad", "Ciudad")
-                        .WithMany()
-                        .HasForeignKey("CiudadId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany("Locales")
+                        .HasForeignKey("CiudadId");
 
                     b.Navigation("Canal");
 
@@ -638,19 +607,9 @@ namespace SondeoBackend.Migrations
                 {
                     b.HasOne("SondeoBackend.Models.Encuesta", "Encuesta")
                         .WithMany()
-                        .HasForeignKey("EncuestaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SondeoBackend.Models.Mes", "Meses")
-                        .WithMany()
-                        .HasForeignKey("MesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("EncuestaId");
 
                     b.Navigation("Encuesta");
-
-                    b.Navigation("Meses");
                 });
 
             modelBuilder.Entity("SondeoBackend.Models.Producto", b =>
@@ -667,15 +626,15 @@ namespace SondeoBackend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SondeoBackend.Models.DetalleEncuesta", null)
+                        .WithMany("Productos")
+                        .HasForeignKey("DetalleEncuestaId");
+
                     b.HasOne("SondeoBackend.Models.Marca", "Marca")
                         .WithMany()
                         .HasForeignKey("MarcaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("SondeoBackend.Models.DetalleEncuesta", null)
-                        .WithMany("Productos")
-                        .HasForeignKey("ProductoId");
 
                     b.HasOne("SondeoBackend.Models.Propiedades", "Propiedades")
                         .WithMany()
@@ -690,6 +649,11 @@ namespace SondeoBackend.Migrations
                     b.Navigation("Propiedades");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SondeoBackend.Models.Ciudad", b =>
+                {
+                    b.Navigation("Locales");
                 });
 
             modelBuilder.Entity("SondeoBackend.Models.DetalleEncuesta", b =>

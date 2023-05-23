@@ -59,7 +59,7 @@ namespace SondeoBackend.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    NombreCanal = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    NombreCanal = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -72,7 +72,7 @@ namespace SondeoBackend.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    NombreCategoria = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    NombreCategoria = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -85,7 +85,7 @@ namespace SondeoBackend.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    NombreCiudad = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    NombreCiudad = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -98,24 +98,11 @@ namespace SondeoBackend.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    NombreMarca = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    NombreMarca = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Marcas", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Mes",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    NombreMes = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Mes", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -124,9 +111,10 @@ namespace SondeoBackend.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    tipo = table.Column<int>(type: "int", nullable: false),
-                    Mensaje = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    fecha = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Tipo = table.Column<int>(type: "int", nullable: true),
+                    Mensaje = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Fecha = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Identificacion = table.Column<int>(type: "int", nullable: true),
                     Vista = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -140,7 +128,7 @@ namespace SondeoBackend.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    NombrePropiedades = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    NombrePropiedades = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -259,12 +247,12 @@ namespace SondeoBackend.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Direccion = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Latitud = table.Column<float>(type: "real", nullable: false),
-                    Longitud = table.Column<float>(type: "real", nullable: false),
-                    CiudadId = table.Column<int>(type: "int", nullable: false),
-                    CanalId = table.Column<int>(type: "int", nullable: false)
+                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Direccion = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Latitud = table.Column<float>(type: "real", nullable: true),
+                    Longitud = table.Column<float>(type: "real", nullable: true),
+                    CanalId = table.Column<int>(type: "int", nullable: true),
+                    CiudadId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -273,14 +261,12 @@ namespace SondeoBackend.Migrations
                         name: "FK_Locales_Canales_CanalId",
                         column: x => x.CanalId,
                         principalTable: "Canales",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Locales_Ciudades_CiudadId",
                         column: x => x.CiudadId,
                         principalTable: "Ciudades",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -291,9 +277,9 @@ namespace SondeoBackend.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FechaInicio = table.Column<DateTime>(type: "datetime2", nullable: false),
                     FechaCierre = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DiasTrabajados = table.Column<int>(type: "int", nullable: false),
-                    CustomUserId = table.Column<int>(type: "int", nullable: false),
-                    LocalId = table.Column<int>(type: "int", nullable: false)
+                    DiasTrabajados = table.Column<int>(type: "int", nullable: true),
+                    CustomUserId = table.Column<int>(type: "int", nullable: true),
+                    LocalId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -302,14 +288,12 @@ namespace SondeoBackend.Migrations
                         name: "FK_Encuestas_AspNetUsers_CustomUserId",
                         column: x => x.CustomUserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Encuestas_Locales_LocalId",
                         column: x => x.LocalId,
                         principalTable: "Locales",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -318,13 +302,12 @@ namespace SondeoBackend.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    StockInicial = table.Column<int>(type: "int", nullable: false),
-                    StockFinal = table.Column<int>(type: "int", nullable: false),
-                    Compra = table.Column<float>(type: "real", nullable: false),
-                    Pvd = table.Column<float>(type: "real", nullable: false),
-                    Pvp = table.Column<float>(type: "real", nullable: false),
-                    EncuestaId = table.Column<int>(type: "int", nullable: false),
-                    ProductoId = table.Column<int>(type: "int", nullable: false)
+                    StockInicial = table.Column<int>(type: "int", nullable: true),
+                    StockFinal = table.Column<int>(type: "int", nullable: true),
+                    Compra = table.Column<float>(type: "real", nullable: true),
+                    Pvd = table.Column<float>(type: "real", nullable: true),
+                    Pvp = table.Column<float>(type: "real", nullable: true),
+                    EncuestaId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -333,8 +316,7 @@ namespace SondeoBackend.Migrations
                         name: "FK_DetalleEncuestas_Encuestas_EncuestaId",
                         column: x => x.EncuestaId,
                         principalTable: "Encuestas",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -343,8 +325,10 @@ namespace SondeoBackend.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    MesId = table.Column<int>(type: "int", nullable: false),
-                    EncuestaId = table.Column<int>(type: "int", nullable: false)
+                    Activada = table.Column<bool>(type: "bit", nullable: false),
+                    Month = table.Column<int>(type: "int", nullable: true),
+                    Year = table.Column<int>(type: "int", nullable: true),
+                    EncuestaId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -353,14 +337,7 @@ namespace SondeoBackend.Migrations
                         name: "FK_Mediciones_Encuestas_EncuestaId",
                         column: x => x.EncuestaId,
                         principalTable: "Encuestas",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Mediciones_Mes_MesId",
-                        column: x => x.MesId,
-                        principalTable: "Mes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -375,7 +352,7 @@ namespace SondeoBackend.Migrations
                     MarcaId = table.Column<int>(type: "int", nullable: false),
                     PropiedadesId = table.Column<int>(type: "int", nullable: false),
                     CustomUserId = table.Column<int>(type: "int", nullable: false),
-                    ProductoId = table.Column<int>(type: "int", nullable: true)
+                    DetalleEncuestaId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -393,8 +370,8 @@ namespace SondeoBackend.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Productos_DetalleEncuestas_ProductoId",
-                        column: x => x.ProductoId,
+                        name: "FK_Productos_DetalleEncuestas_DetalleEncuestaId",
+                        column: x => x.DetalleEncuestaId,
                         principalTable: "DetalleEncuestas",
                         principalColumn: "Id");
                     table.ForeignKey(
@@ -481,11 +458,6 @@ namespace SondeoBackend.Migrations
                 column: "EncuestaId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Mediciones_MesId",
-                table: "Mediciones",
-                column: "MesId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Productos_CategoriaId",
                 table: "Productos",
                 column: "CategoriaId");
@@ -496,14 +468,14 @@ namespace SondeoBackend.Migrations
                 column: "CustomUserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Productos_DetalleEncuestaId",
+                table: "Productos",
+                column: "DetalleEncuestaId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Productos_MarcaId",
                 table: "Productos",
                 column: "MarcaId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Productos_ProductoId",
-                table: "Productos",
-                column: "ProductoId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Productos_PropiedadesId",
@@ -539,9 +511,6 @@ namespace SondeoBackend.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
-
-            migrationBuilder.DropTable(
-                name: "Mes");
 
             migrationBuilder.DropTable(
                 name: "Categorias");

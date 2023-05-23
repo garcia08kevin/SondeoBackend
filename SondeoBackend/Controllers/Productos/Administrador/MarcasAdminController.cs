@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SondeoBackend.Context;
+using SondeoBackend.DTO;
 using SondeoBackend.Models;
 
 namespace SondeoBackend.Controllers.Productos.Administrador
@@ -36,15 +37,22 @@ namespace SondeoBackend.Controllers.Productos.Administrador
         {
             if (_context.Marcas == null)
             {
-                return NotFound();
+                return BadRequest(error: new AuthResult()
+                {
+                    Result = false,
+                    Contenido = "No se ha encontrado elemento"
+                });            
             }
             var marca = await _context.Marcas.FindAsync(id);
 
             if (marca == null)
             {
-                return NotFound();
+                return BadRequest(error: new AuthResult()
+                {
+                    Result = false,
+                    Contenido = "No se ha encontrado elemento"
+                });            
             }
-
             return marca;
         }
 

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using SondeoBackend.Configuration;
 using SondeoBackend.Context;
+using SondeoBackend.DTO;
 using SondeoBackend.Models;
 
 namespace SondeoBackend.Controllers.Productos.Administrador
@@ -121,10 +122,14 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             var detallesEncuestas = await _context.DetalleEncuestas.ToListAsync();
             foreach(DetalleEncuesta detalle in detallesEncuestas)
             {
-                if (detalle.ProductoId == prodSeleccionado)
+                foreach(Producto producto in detalle.Productos)
                 {
-                    detalle.ProductoId = prodResplazo;
-                    await _context.SaveChangesAsync();
+                    if (producto.Id == prodSeleccionado)
+                    {
+                        producto.Id = prodResplazo;
+                        _context.Productos.Remove(producto);
+                        await _context.SaveChangesAsync();
+                    }
                 }
             }
             var productoRemplazado = await _context.Productos.FindAsync(prodSeleccionado);

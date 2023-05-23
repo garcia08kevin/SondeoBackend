@@ -102,7 +102,6 @@ namespace SondeoBackend.Controllers
             }
             return BadRequest();
         }
-         //La seleccion 1 desactivia el usuario, la 0 lo activa        
 
         [HttpGet]
         [Route("GetAllUsers")]
@@ -153,6 +152,46 @@ namespace SondeoBackend.Controllers
 
             }
             return false;
+        }
+
+        [HttpPost]
+        [Route("ResetPassword")]
+        public async Task<IActionResult> ResetPassword(int userId)
+        {
+            var user_exist = await _userManager.FindByIdAsync(Convert.ToString(userId));
+            if (user_exist == null)
+            {
+                return BadRequest(error: new AuthResult()
+                {
+                    Result = false,
+                    Errors = new List<string>()
+                        {
+                            "El usuario no esta registrado"
+                        }
+                });
+            }
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user_exist);
+            var password = GenerateRandomPassword();
+            var result = await _userManager.ResetPasswordAsync(user_exist, token, password);
+            if (result.Succeeded)
+            {
+                user_exist.EmailConfirmed = false;
+                await _context.SaveChangesAsync();
+                return Ok(new AuthResult()
+                {
+                    Result = true,
+                    Token = password,
+                    Contenido = "Se ha reseteado el usuario con exito"
+                });
+            }
+                return BadRequest(error: new AuthResult()
+            {
+                Result = false,
+                Errors = new List<string>()
+                        {
+                            "No se pudo resetar la contraseña del usuario"
+                        }
+            });
         }
 
         [HttpDelete]
@@ -211,10 +250,10 @@ namespace SondeoBackend.Controllers
             };
 
             string[] randomChars = new[] {
-            "ABCDEFGHJKLMNOPQRSTUVWXYZ",    // uppercase 
-            "abcdefghijkmnopqrstuvwxyz",    // lowercase
-            "0123456789",                   // digits
-            "!@$?_-"                        // non-alphanumeric
+            "ABCDEFGHJKLMNOPQRSTUVWXYZ",    
+            "abcdefghijkmnopqrstuvwxyz",    
+            "0123456789",                   
+            "!@$?_-"                        
         };
 
             Random rand = new Random(Environment.TickCount);

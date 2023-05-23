@@ -12,7 +12,7 @@ using SondeoBackend.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
- 
+
 namespace SondeoBackend.Controllers
 {
     [Route("api/[controller]")]
@@ -55,7 +55,19 @@ namespace SondeoBackend.Controllers
                             "Usuario No registrado"
                         }
                     });
-                }                
+                }                                
+                var isCorrect = await _userManager.CheckPasswordAsync(user_exist, login.Password);
+                if (!isCorrect)
+                {
+                    return BadRequest(error: new AuthResult()
+                    {
+                        Result = false,
+                        Errors = new List<string>()
+                        {
+                            "Clave de Usuario Incorrecta"
+                        }
+                    });
+                }
                 if (!user_exist.EmailConfirmed)
                 {
                     return BadRequest(error: new AuthResult()
@@ -63,8 +75,7 @@ namespace SondeoBackend.Controllers
                         Result = false,
                         Errors = new List<string>()
                         {
-                            "FirstLogin",
-                            "Debes cambiar tu contraseña"
+                            "FirstLogin"
                         }
                     });
                 }
@@ -76,18 +87,6 @@ namespace SondeoBackend.Controllers
                         Errors = new List<string>()
                         {
                             "Tu usuario ha sido bloqueado"
-                        }
-                    });
-                }
-                var isCorrect = await _userManager.CheckPasswordAsync(user_exist, login.Password);
-                if (!isCorrect)
-                {
-                    return BadRequest(error: new AuthResult()
-                    {
-                        Result = false,
-                        Errors = new List<string>()
-                        {
-                            "Clave de Usuario Incorrecta"
                         }
                     });
                 }
@@ -117,6 +116,17 @@ namespace SondeoBackend.Controllers
                 var handler = new JwtSecurityTokenHandler();
                 var jwtSecurityToken = handler.ReadJwtToken(user.Token);
                 var email = jwtSecurityToken.Claims.FirstOrDefault(c => c.Type == "email");
+                if (email == null)
+                {
+                    return BadRequest(error: new AuthResult()
+                    {
+                        Result = false,
+                        Errors = new List<string>()
+                        {
+                            "No se ha encontrado el email del usuario"
+                        }
+                    });
+                }
                 var user_exist = await _userManager.FindByEmailAsync(email.Value);
                 if (user_exist == null)
                 {
@@ -190,21 +200,6 @@ namespace SondeoBackend.Controllers
             });
         }
 
-        //[HttpPost]
-        //[Route("IsAdmin")]
-        //public bool IsAdmin([FromBody] AuthResult user)
-        //{
-        //    var handler = new JwtSecurityTokenHandler();
-        //    var jwtSecurityToken = handler.ReadJwtToken(user.Token);
-        //    var role = jwtSecurityToken.Claims.FirstOrDefault(c => c.Type == "role");
-        //    if (role.Value.Equals("Administrador"))
-        //    {
-        //        return true;
-        //    }
-        //    return false;
-
-        //}        
-
         [HttpPost]
         [Route("ChangePassword")]
         public async Task<IActionResult> ChangePassword([FromBody] UserVerification verification)
@@ -244,8 +239,8 @@ namespace SondeoBackend.Controllers
                         user_exist.EmailConfirmed = true;
                         var notificacion = new Notification()
                         {
-                            tipo = 1,
-                            fecha = DateTime.Now,
+                            Tipo = 1,
+                            Fecha = DateTime.Now,
                             Mensaje = $"El usuario {user_exist.Email} ha activado su cuenta",
                             Identificacion = user_exist.Id
                         };

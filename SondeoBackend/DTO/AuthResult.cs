@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace SondeoBackend.Models
+namespace SondeoBackend.DTO
 {
     public class AuthResult
     {

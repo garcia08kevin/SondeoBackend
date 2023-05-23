@@ -1,4 +1,4 @@
-﻿namespace SondeoBackend.Models
+﻿namespace SondeoBackend.DTO
 {
     public class UserDetail
     {

@@ -28,7 +28,7 @@ namespace SondeoBackend.Controllers
             {
                 return NotFound();
             }
-            return await _context.Notifications.OrderByDescending(p => p.fecha).ToListAsync();
+            return await _context.Notifications.OrderByDescending(p => p.Fecha).ToListAsync();
         }
 
         [Route("MarcarComoLeido")]

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace SondeoBackend.Models
+namespace SondeoBackend.DTO
 {
     public class RegistroProducto
     {

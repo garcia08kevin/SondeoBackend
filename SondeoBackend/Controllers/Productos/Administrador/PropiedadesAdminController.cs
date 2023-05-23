@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SondeoBackend.Context;
+using SondeoBackend.DTO;
 using SondeoBackend.Models;
 
 namespace SondeoBackend.Controllers.Productos.Administrador

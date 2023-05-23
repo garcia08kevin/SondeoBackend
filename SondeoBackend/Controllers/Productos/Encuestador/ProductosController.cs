@@ -10,6 +10,7 @@ using SondeoBackend.Models;
 using SondeoBackend.Configuration;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Identity;
+using SondeoBackend.DTO;
 
 namespace SondeoBackend.Controllers.Productos.Encuestador
 {
@@ -116,8 +117,8 @@ namespace SondeoBackend.Controllers.Productos.Encuestador
                 var mensajeNotificacion = $"El usuario {user.Name} {user.Lastname} ha registrado el producto {producto.Nombre} en la categoria {categoriaProducto.NombreCategoria}";
                 var notificacion = new Notification()
                 {
-                    tipo = 2,
-                    fecha = DateTime.Now,
+                    Tipo = 2,
+                    Fecha = DateTime.Now,
                     Mensaje = mensajeNotificacion,
                     Identificacion = producto.Id
                 };
