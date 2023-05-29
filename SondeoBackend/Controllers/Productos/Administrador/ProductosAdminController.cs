@@ -32,51 +32,24 @@ namespace SondeoBackend.Controllers.Productos.Administrador
         }
         [Route("GetProductosByEncuestador/{id}")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Producto>>> GetProductosByEncuestador(int id, bool todo)
+        public async Task<ActionResult<IEnumerable<Producto>>> GetProductosByEncuestador(int id)
         {
             if (_context.Productos == null)
             {
                 return NotFound();
             }
-            if(todo)
-            {
-                return await _context.Productos.Where(e => e.Activado == false).Include(e => e.Marca).Include(e => e.User).Include(e => e.Categoria).Include(e => e.Propiedades).ToListAsync();
-            }
-            return await _context.Productos.Where(e=> e.CustomUserId == id).Include(e=> e.User).Include(e => e.Marca).Include(e => e.Categoria).Include(e => e.Propiedades).ToListAsync();
+            return await _context.Productos.Where(e => e.CustomUserId == id).Include(e => e.User).Include(e => e.Marca).Include(e => e.Categoria).Include(e => e.Propiedades).ToListAsync();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Producto>> GetProducto(int id)
         {
-            var producto = await _context.Productos.FindAsync(id);
-
+            var producto = await _context.Productos.Include(e => e.Propiedades).Include(e => e.Marca).Include(e => e.Categoria).FirstOrDefaultAsync(i => i.Id == id);
             if (producto == null)
             {
-                return BadRequest(error: new AuthResult()
-                {
-                    Result = false,
-                    Errors = new List<string>()
-                        {
-                            "No se encontro el producto"
-                        }
-                });
+                return BadRequest();
             }
-            var categoria = await _context.Categorias.FindAsync(producto.CategoriaId);
-            var marca = await _context.Marcas.FindAsync(producto.MarcaId);
-            var propiedad = await _context.Propiedades.FindAsync(producto.PropiedadesId);
-
-            return Ok(new Producto()
-            {
-                Id = producto.Id,
-                CategoriaId = producto.CategoriaId,
-                MarcaId= producto.MarcaId,
-                PropiedadesId = producto.PropiedadesId,
-                Activado = producto.Activado,
-                Nombre = producto.Nombre,
-                Categoria = categoria,
-                Marca = marca,
-                Propiedades = propiedad,
-            });
+            return producto;
         }
 
         [HttpPut("{id}")]
@@ -84,7 +57,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
         {
             if (id != producto.Id)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Errors = new List<string>()
@@ -95,7 +68,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             }
             _context.Entry(producto).State = EntityState.Modified;
             await _context.SaveChangesAsync();
-            return Ok(new AuthResult()
+            return Ok(new ModelResult()
             {
                 Result = true,
                 Contenido = "Producto modificado correctamente"
@@ -108,7 +81,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             _context.Productos.Add(producto);
             await _context.SaveChangesAsync();
 
-            return Ok(new AuthResult()
+            return Ok(new ModelResult()
             {
                 Result = true,
                 Contenido = "Producto creado correctamente"
@@ -122,14 +95,10 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             var detallesEncuestas = await _context.DetalleEncuestas.ToListAsync();
             foreach(DetalleEncuesta detalle in detallesEncuestas)
             {
-                foreach(Producto producto in detalle.Productos)
+                if (detalle.ProductoId == prodSeleccionado)
                 {
-                    if (producto.Id == prodSeleccionado)
-                    {
-                        producto.Id = prodResplazo;
-                        _context.Productos.Remove(producto);
-                        await _context.SaveChangesAsync();
-                    }
+                    detalle.ProductoId = prodResplazo;                    
+                    await _context.SaveChangesAsync();
                 }
             }
             var productoRemplazado = await _context.Productos.FindAsync(prodSeleccionado);
@@ -137,13 +106,13 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             {
                 _context.Productos.Remove(productoRemplazado);
                 await _context.SaveChangesAsync();
-                return Ok(new AuthResult()
+                return Ok(new ModelResult()
                 {
                     Result = true,
                     Contenido = "Producto remplazado correctamente"
                 });
             }
-            return BadRequest(error: new AuthResult()
+            return BadRequest(error: new ModelResult()
             {
                 Result = false,
                 Errors = new List<string>()
@@ -156,21 +125,17 @@ namespace SondeoBackend.Controllers.Productos.Administrador
         [Route("ActivarProducto")]
         [HttpPost]
         public async Task<ActionResult> ActivarProducto(int id)
-        {
-            if (_context.Productos == null)
-            {
-                return BadRequest(new AuthResult { Result = false, Contenido = "No se pudo encontrar el producto" });
-            }
+        {            
             var producto = await _context.Productos.FindAsync(id);
             if (producto == null)
             {
-                return BadRequest(new AuthResult { Result = false, Contenido = "No se pudo encontrar el producto" });
+                return BadRequest(new ModelResult { Result = false, Contenido = "No se pudo encontrar el producto" });
             }
             if (producto.Activado)
             {
                 producto.Activado = false;
                 await _context.SaveChangesAsync();
-                return Ok(new AuthResult
+                return Ok(new ModelResult
                 {
                     Result = true,
                     Contenido = "Se ha desactivado el producto correctamente"
@@ -178,7 +143,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             }
             producto.Activado = true;
             await _context.SaveChangesAsync();
-            return Ok(new AuthResult
+            return Ok(new ModelResult
             {
                 Result = true,
                 Contenido = "Se ha activado el producto correctamente"
@@ -191,7 +156,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             var producto = await _context.Productos.FindAsync(id);
             if (producto == null)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Errors = new List<string>()
@@ -203,7 +168,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             _context.Productos.Remove(producto);
             await _context.SaveChangesAsync();
 
-            return Ok(new AuthResult()
+            return Ok(new ModelResult()
             {
                 Result = true,
                 Contenido = "Producto eliminado correctamente"

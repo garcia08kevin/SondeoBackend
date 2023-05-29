@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
+using SondeoBackend.Configuration;
 
 namespace SondeoBackend.Models
 {
@@ -22,6 +23,6 @@ namespace SondeoBackend.Models
 
         [ForeignKey("CustomUserId")]
         public CustomUser? User { get; set; }
-        public int CustomUserId { get; set; }
+        public int CustomUserId { get; set; }        
     }
 }

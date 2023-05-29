@@ -2,7 +2,7 @@
 
 namespace SondeoBackend.DTO
 {
-    public class AuthResult
+    public class ModelResult
     {
         public string Token { get; set; }
         public bool Result { get; set; }

@@ -9,24 +9,23 @@ using MimeKit;
 using SondeoBackend.Configuration;
 using SondeoBackend.Context;
 using SondeoBackend.DTO;
-using SondeoBackend.Models;
 
-namespace SondeoBackend.Controllers
+namespace SondeoBackend.Controllers.UserManagement.Administrador
 {
     //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
     [Route("api/[controller]")]
     [ApiController]
-    public class AdminController : ControllerBase
+    public class AccountsController : ControllerBase
     {
         private readonly DataContext _context;
         private readonly SignInManager<CustomUser> _signInManager;
         private readonly UserManager<CustomUser> _userManager;
         private readonly IConfiguration _configuration;
         private readonly RoleManager<CustomRole> _roleManager;
-        private readonly ILogger<AuthenticationController> _logger;
+        private readonly ILogger<AccountsController> _logger;
         private readonly RolesController _roles;
 
-        public AdminController(DataContext context, RolesController roles , SignInManager<CustomUser> signInManager, UserManager<CustomUser> userManager, IConfiguration configuration, RoleManager<CustomRole> roleManager, ILogger<AuthenticationController> logger)
+        public AccountsController(DataContext context, RolesController roles, SignInManager<CustomUser> signInManager, UserManager<CustomUser> userManager, IConfiguration configuration, RoleManager<CustomRole> roleManager, ILogger<AccountsController> logger)
         {
             _roles = roles;
             _context = context;
@@ -46,7 +45,7 @@ namespace SondeoBackend.Controllers
                 var user_exist = await _userManager.FindByEmailAsync(user.Email);
                 if (user_exist != null)
                 {
-                    return BadRequest(error: new AuthResult()
+                    return BadRequest(error: new ModelResult()
                     {
                         Result = false,
                         Errors = new List<string>()
@@ -65,7 +64,7 @@ namespace SondeoBackend.Controllers
                 var role_exist = await _roleManager.FindByNameAsync(user.Role);
                 if (role_exist == null)
                 {
-                    return BadRequest(error: new AuthResult()
+                    return BadRequest(error: new ModelResult()
                     {
                         Result = false,
                         Errors = new List<string>()
@@ -83,14 +82,14 @@ namespace SondeoBackend.Controllers
                         var body = $"<div class=\"homePage\">\r\n    <div class=\"col-xs-12 col-sm-12 col-md-offset-2 col-md-10 col-lg-offset-2 col-lg-10\">\r\n        <div class=\"container col-md-12 col-lg-12\">\r\n            <!--Inicio recuperar contraseña -->\r\n     <h2 class=\"form-signin-heading recuperarPassTitl text-center\">Tu cuenta ha sido creada</h2>\r\n     <p class=\"subtreestablecerPass text-center\">Hola nombre, tu cuenta en Sondeo ha sido activada, estas son tus credenciales:</p>       \r\n        <ul>\r\n            <li> Email: {new_user.Email} XD</li>\r\n            <li> Contraseña: {pass_generate} </li>\r\n            <li> Rol: {user.Role} ss </li>        \r\n        </ul>\r\n    </div> \r\n </div> ";
                         SendEmail(body, new_user.Email, "CuentaActivada");
                         await _userManager.AddToRoleAsync(new_user, user.Role);
-                        return Ok(new AuthResult()
+                        return Ok(new ModelResult()
                         {
                             Result = true,
                             Token = pass_generate,
                             Contenido = "El usuario a sido generado con exito esta es su clave temporal"
                         });
                     }
-                    return BadRequest(error: new AuthResult()
+                    return BadRequest(error: new ModelResult()
                     {
                         Result = false,
                         Errors = new List<string>()
@@ -116,7 +115,7 @@ namespace SondeoBackend.Controllers
         public async Task<IActionResult> GetAllUserByRole(string role)
         {
             List<CustomUser> users = new List<CustomUser>();
-            var usuariosActivados = await _userManager.Users.Where(e=>e.CuentaActiva == true).ToListAsync();
+            var usuariosActivados = await _userManager.Users.Where(e => e.CuentaActiva == true).ToListAsync();
             for (int i = 0; i < usuariosActivados.Count; i++)
             {
                 var userRole = await _userManager.GetRolesAsync(usuariosActivados[i]);
@@ -126,7 +125,7 @@ namespace SondeoBackend.Controllers
                 }
             }
             return Ok(users);
-        }       
+        }
 
         [HttpPost]
         [Route("ActivarUsuario")]
@@ -161,7 +160,7 @@ namespace SondeoBackend.Controllers
             var user_exist = await _userManager.FindByIdAsync(Convert.ToString(userId));
             if (user_exist == null)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Errors = new List<string>()
@@ -177,14 +176,14 @@ namespace SondeoBackend.Controllers
             {
                 user_exist.EmailConfirmed = false;
                 await _context.SaveChangesAsync();
-                return Ok(new AuthResult()
+                return Ok(new ModelResult()
                 {
                     Result = true,
                     Token = password,
                     Contenido = "Se ha reseteado el usuario con exito"
                 });
             }
-                return BadRequest(error: new AuthResult()
+            return BadRequest(error: new ModelResult()
             {
                 Result = false,
                 Errors = new List<string>()
@@ -202,14 +201,16 @@ namespace SondeoBackend.Controllers
             if (user == null)
             {
                 _logger.LogInformation($"El usuario no exite");
-                return BadRequest(new AuthResult { 
+                return BadRequest(new ModelResult
+                {
                     Result = false,
-                    Contenido = $"El usuario no exite" });
+                    Contenido = $"El usuario no exite"
+                });
             }
             var result = await _userManager.DeleteAsync(user);
             if (result.Succeeded)
             {
-                return Ok(new AuthResult
+                return Ok(new ModelResult
                 {
                     Result = true,
                     Contenido = "Se ha Eliminado el Usuario"
@@ -218,9 +219,9 @@ namespace SondeoBackend.Controllers
             else
             {
                 _logger.LogInformation("No se pudo eliminar el usuario");
-                return BadRequest(new AuthResult { Result = false, Contenido = "No se pudo eliminar el usuario" });
+                return BadRequest(new ModelResult { Result = false, Contenido = "No se pudo eliminar el usuario" });
             }
-        }                   
+        }
 
         public static void SendEmail(string body, string destinatario, string subject)
         {
@@ -250,10 +251,10 @@ namespace SondeoBackend.Controllers
             };
 
             string[] randomChars = new[] {
-            "ABCDEFGHJKLMNOPQRSTUVWXYZ",    
-            "abcdefghijkmnopqrstuvwxyz",    
-            "0123456789",                   
-            "!@$?_-"                        
+            "ABCDEFGHJKLMNOPQRSTUVWXYZ",
+            "abcdefghijkmnopqrstuvwxyz",
+            "0123456789",
+            "!@$?_-"
         };
 
             Random rand = new Random(Environment.TickCount);

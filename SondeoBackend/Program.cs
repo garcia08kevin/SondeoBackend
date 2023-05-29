@@ -8,6 +8,8 @@ using SondeoBackend.Configuration;
 using SondeoBackend.Context;
 using SondeoBackend.Models;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 var myArrowSpecificOrigins = "myArrowSpecificOrigins";
@@ -64,8 +66,6 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddScoped(typeof(GenericRepository<>));
-
 builder.Services.AddIdentity<CustomUser, CustomRole>(options => options.SignIn.RequireConfirmedAccount = false).AddEntityFrameworkStores<DataContext>()
     .AddTokenProvider<DataProtectorTokenProvider<CustomUser>>(TokenOptions.DefaultProvider);
 builder.Host.UseNLog();
@@ -86,7 +86,16 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequiredLength = 6;
 });
 
-builder.Services.AddMvc().AddControllersAsServices();
+var options = new JsonSerializerOptions
+{
+    ReferenceHandler = ReferenceHandler.Preserve
+};
+
+
+
+builder.Services.AddMvc().AddControllersAsServices().AddNewtonsoftJson(options =>
+    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+);
 
 var app = builder.Build();
 

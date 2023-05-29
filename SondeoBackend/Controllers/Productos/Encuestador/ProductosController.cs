@@ -11,6 +11,7 @@ using SondeoBackend.Configuration;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Identity;
 using SondeoBackend.DTO;
+using Microsoft.Win32;
 
 namespace SondeoBackend.Controllers.Productos.Encuestador
 {
@@ -42,30 +43,12 @@ namespace SondeoBackend.Controllers.Productos.Encuestador
         [HttpGet("{id}")]
         public async Task<ActionResult<Producto>> GetProducto(int id)
         {
-            if (_context.Productos == null)
+            var producto = await _context.Productos.Include(e => e.Propiedades).Include(e => e.Marca).Include(e => e.Categoria).FirstOrDefaultAsync(i => i.Id == id);
+            if (producto== null)
             {
-                return NotFound();
+                return BadRequest();
             }
-            var producto = await _context.Productos.FindAsync(id);
-
-            if (producto == null)
-            {
-                return NotFound();
-            }
-            var categoria = await _context.Categorias.FindAsync(producto.CategoriaId);
-            var marca = await _context.Marcas.FindAsync(producto.MarcaId);
-            var propiedad = await _context.Propiedades.FindAsync(producto.PropiedadesId);
-
-            var productoF = new Producto()
-            {
-                Id = producto.Id,
-                Activado = producto.Activado,
-                Nombre = producto.Nombre,
-                Categoria = categoria,
-                Marca = marca,
-                Propiedades = propiedad,
-            };
-            return productoF;
+            return producto;
         }
 
         [HttpPut("{id}")]
@@ -73,28 +56,22 @@ namespace SondeoBackend.Controllers.Productos.Encuestador
         {
             if (id != producto.Id)
             {
-                return BadRequest();
+                return BadRequest(error: new ModelResult()
+                {
+                    Result = false,
+                    Errors = new List<string>()
+                        {
+                            "No se encontro el producto"
+                        }
+                });
             }
-
             _context.Entry(producto).State = EntityState.Modified;
-
-            try
+            await _context.SaveChangesAsync();
+            return Ok(new ModelResult()
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ProductoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+                Result = true,
+                Contenido = "Producto modificado correctamente"
+            });
         }
 
         [HttpPost]
@@ -125,13 +102,13 @@ namespace SondeoBackend.Controllers.Productos.Encuestador
                 _context.Notifications.Add(notificacion);
                 await _hubs.Clients.All.SendAsync("Notificacion", mensajeNotificacion);
                 await _context.SaveChangesAsync();
-                return Ok(new AuthResult()
+                return Ok(new ModelResult()
                 {
                     Result = true,
                     Contenido = "Producto creado correctamente"
                 });
             }
-            return BadRequest(error: new AuthResult()
+            return BadRequest(error: new ModelResult()
             {
                 Result = false,
                 Errors = new List<string>()
@@ -139,11 +116,6 @@ namespace SondeoBackend.Controllers.Productos.Encuestador
                             "No se pudo crear el producto"
                         }
             });
-        }
-
-        private bool ProductoExists(int id)
-        {
-            return (_context.Productos?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using SondeoBackend.Context;
 using SondeoBackend.Models;
 
-namespace SondeoBackend.Controllers
+namespace SondeoBackend.Controllers.UserManagement.Administrador
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -49,7 +49,7 @@ namespace SondeoBackend.Controllers
 
         [Route("NoLeidas")]
         [HttpGet]
-        public async Task<int> NotificacionesNoLeidas ()
+        public async Task<int> NotificacionesNoLeidas()
         {
             int cantidad = 0;
             var notificaciones = await _context.Notifications.ToListAsync();

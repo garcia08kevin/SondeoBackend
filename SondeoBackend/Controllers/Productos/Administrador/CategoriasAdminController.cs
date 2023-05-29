@@ -54,7 +54,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
         {
             if (id != categoria.Id)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Contenido = "El elemento no coincide"
@@ -62,7 +62,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             }
             if (id == 1)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Contenido = "No puedes modificar este elemento"
@@ -71,7 +71,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             _context.Entry(categoria).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
-            return Ok(new AuthResult()
+            return Ok(new ModelResult()
             {
                 Result = true,
                 Contenido = "Elemento modificado correctamente"
@@ -85,7 +85,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             {
                 _context.Categorias.Add(categoria);
                 await _context.SaveChangesAsync();
-                return Ok(new AuthResult()
+                return Ok(new ModelResult()
                 {
                     Result = true,
                     Contenido = "Elemento agregado correctamente"
@@ -93,7 +93,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             }
             catch (DbUpdateConcurrencyException)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Contenido = "No puedes agregar el elemento"
@@ -111,7 +111,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             var categoria = await _context.Categorias.FindAsync(id);
             if (id == 1)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Contenido = "No puedes eliminar este elemento"
@@ -119,7 +119,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             }
             if (categoria == null)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Contenido = "No se ha encontrado elemento"
@@ -129,16 +129,11 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             _context.Categorias.Remove(categoria);
             await _context.SaveChangesAsync();
 
-            return Ok(new AuthResult()
+            return Ok(new ModelResult()
             {
                 Result = true,
                 Contenido = "Elemento eliminado correctamente"
             });
-        }
-
-        private bool CategoriaExists(int id)
-        {
-            return (_context.Categorias?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

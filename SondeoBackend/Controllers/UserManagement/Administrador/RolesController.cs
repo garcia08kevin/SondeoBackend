@@ -3,27 +3,20 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SondeoBackend.Configuration;
 using SondeoBackend.Context;
-using SondeoBackend.Models;
 
-namespace SondeoBackend.Controllers
+namespace SondeoBackend.Controllers.UserManagement.Administrador
 {
     [Route("api/[controller]")]
     [ApiController]
     public class RolesController : ControllerBase
     {
-        private readonly DataContext _context;
-        private readonly SignInManager<CustomUser> _signInManager;
         private readonly UserManager<CustomUser> _userManager;
-        private readonly IConfiguration _configuration;
         private readonly RoleManager<CustomRole> _roleManager;
-        private readonly ILogger<AuthenticationController> _logger;
+        private readonly ILogger<RolesController> _logger;
 
-        public RolesController(UserManager<CustomUser> userManager, IConfiguration configuration, SignInManager<CustomUser> signInManager, RoleManager<CustomRole> roleManager, ILogger<AuthenticationController> logger, DataContext context)
+        public RolesController(UserManager<CustomUser> userManager, RoleManager<CustomRole> roleManager, ILogger<RolesController> logger)
         {
-            _context = context;
             _userManager = userManager;
-            _configuration = configuration;
-            _signInManager = signInManager;
             _roleManager = roleManager;
             _logger = logger;
         }

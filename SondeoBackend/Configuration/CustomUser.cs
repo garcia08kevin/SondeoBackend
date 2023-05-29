@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
 
-namespace SondeoBackend.Models
+namespace SondeoBackend.Configuration
 {
     public class CustomUser : IdentityUser<int>
     {

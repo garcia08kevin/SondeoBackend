@@ -13,6 +13,8 @@ namespace SondeoBackend.Models
         [ForeignKey("EncuestaId")]
         public Encuesta? Encuesta { get; set; }
         public int? EncuestaId { get; set; }
-        public ICollection<Producto>? Productos { get; set; }
+        [ForeignKey("ProductoId")]
+        public Producto? Producto { get; set; }
+        public int ProductoId { get; set; }
     }
 }

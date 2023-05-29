@@ -37,7 +37,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
         {
             if (_context.Marcas == null)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Contenido = "No se ha encontrado elemento"
@@ -47,7 +47,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
 
             if (marca == null)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Contenido = "No se ha encontrado elemento"
@@ -61,7 +61,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
         {
             if (id != marca.Id)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Contenido = "El elemento no coincide"
@@ -69,7 +69,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             }
             if (id == 1)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Contenido = "No puedes modificar este elemento"
@@ -78,7 +78,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             _context.Entry(marca).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
-            return Ok(new AuthResult()
+            return Ok(new ModelResult()
             {
                 Result = true,
                 Contenido = "Elemento modificado correctamente"
@@ -92,7 +92,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             {
                 _context.Marcas.Add(marca);
                 await _context.SaveChangesAsync();
-                return Ok(new AuthResult()
+                return Ok(new ModelResult()
                 {
                     Result = true,
                     Contenido = "Elemento agregado correctamente"
@@ -100,7 +100,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             }
             catch (DbUpdateConcurrencyException)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Contenido = "No puedes agregar el elemento"
@@ -118,7 +118,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             var marca = await _context.Marcas.FindAsync(id);
             if (id == 1)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Contenido = "No puedes eliminar este elemento"
@@ -126,7 +126,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             }
             if (marca == null)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Contenido = "No se ha encontrado elemento"
@@ -136,7 +136,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             _context.Marcas.Remove(marca);
             await _context.SaveChangesAsync();
 
-            return Ok(new AuthResult()
+            return Ok(new ModelResult()
             {
                 Result = true,
                 Contenido = "Elemento eliminado correctamente"

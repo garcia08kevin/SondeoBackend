@@ -55,7 +55,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
         {
             if (id != propiedades.Id)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Contenido = "El elemento no coincide"
@@ -63,7 +63,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             }
             if (id == 1)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Contenido = "No puedes modificar este elemento"
@@ -72,7 +72,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             _context.Entry(propiedades).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
-            return Ok(new AuthResult()
+            return Ok(new ModelResult()
             {
                 Result = true,
                 Contenido = "Elemento modificado correctamente"
@@ -86,7 +86,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             {
                 _context.Propiedades.Add(propiedades);
                 await _context.SaveChangesAsync();
-                return Ok(new AuthResult()
+                return Ok(new ModelResult()
                 {
                     Result = true,
                     Contenido = "Elemento agregado correctamente"
@@ -94,7 +94,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             }
             catch (DbUpdateConcurrencyException)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Contenido = "No puedes agregar el elemento"
@@ -106,14 +106,10 @@ namespace SondeoBackend.Controllers.Productos.Administrador
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePropiedades(int id)
         {
-            if (_context.Propiedades == null)
-            {
-                return NotFound();
-            }
             var propiedades = await _context.Propiedades.FindAsync(id);
             if (id == 1)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Contenido = "No puedes eliminar este elemento"
@@ -121,7 +117,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             }
             if (propiedades == null)
             {
-                return BadRequest(error: new AuthResult()
+                return BadRequest(error: new ModelResult()
                 {
                     Result = false,
                     Contenido = "No se ha encontrado elemento"
@@ -131,7 +127,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             _context.Propiedades.Remove(propiedades);
             await _context.SaveChangesAsync();
 
-            return Ok(new AuthResult()
+            return Ok(new ModelResult()
             {
                 Result = true,
                 Contenido = "Elemento eliminado correctamente"
