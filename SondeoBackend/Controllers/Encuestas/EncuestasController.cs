@@ -7,8 +7,11 @@ using Microsoft.Win32;
 using SondeoBackend.Configuration;
 using SondeoBackend.Context;
 using SondeoBackend.DTO;
+using SondeoBackend.DTO.Encuestador.Registrar;
+using SondeoBackend.DTO.Result;
 using SondeoBackend.Models;
 using System.Collections.ObjectModel;
+using System.Web.Helpers;
 
 namespace SondeoBackend.Controllers.Encuestas
 {
@@ -17,160 +20,76 @@ namespace SondeoBackend.Controllers.Encuestas
     public class EncuestasController : ControllerBase
     {
         private readonly DataContext _context;
+        private readonly UserManager<CustomUser> _userManager;
+        private readonly AssignId _assignId;
 
-        public EncuestasController(DataContext context)
+        public EncuestasController(DataContext context, UserManager<CustomUser> userManager,AssignId assignId)
         {
+            _assignId = assignId;
+            _userManager = userManager;
             _context = context;
         }
         
-        [Route("EncuestasActivas")]
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Encuesta>>> GetEncuestasActivas()
+        [HttpGet("Medicion/{id}")]
+        public async Task<ActionResult<Medicion>> GetMedicion(int id)
         {
-            if (_context.Encuestas == null)
+            var medicion = await _context.Mediciones.Include(e => e.Encuestas).FirstOrDefaultAsync(i => i.Id == id);
+            return Ok(new ObjectResult<Medicion>
             {
-                return NotFound();
-            }
-            return await _context.Encuestas.Include(e => e.Medicion).Where(e=> e.Medicion.Finalizada== false).ToListAsync();
-        }
-
-        [Route("EncuestasFromLocal/{id}")]
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Encuesta>>> GetEncuestasFromLocal(int id)
-        {
-            if (_context.Encuestas == null)
-            {
-                return NotFound();
-            }
-            return await _context.Encuestas.Include(e => e.Medicion).Where(e => e.LocalId == id).ToListAsync();
-        }
-
-        [Route("ProductosEncuesta/{id}")]
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Encuesta>>> GetProductosEncuesta(int id)
-        {
-            if (_context.Encuestas == null)
-            {
-                return NotFound();
-            }
-            return await _context.Encuestas.Include(e => e.Medicion).Include(e => e.DetalleEncuestas).Where(e => e.Id == id).ToListAsync();
-        }
+                Result = true,
+                Object = medicion
+            });
+        }        
 
         [Route("CrearEncuesta")]
         [HttpPost]
         public async Task<IActionResult> CrearEncuesta(RegistroEncuesta registro)
-        {
-            var MoreCurrentDate = new DateTime();
-            var ultimaMedicion = new Medicion();
-            var encuesta = new Encuesta();
-            var medicion = new Medicion();
-            var local = await _context.Locales.Include(e=>e.Encuestas).Include(e => e.Mediciones).FirstOrDefaultAsync(i => i.Id == registro.LocalId);
+        {            
+            var user = await _userManager.FindByIdAsync($"{registro.UserId}");
+            var local = await _context.Locales.FindAsync(registro.LocalId);
             if (local == null)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new ObjectResult<Encuesta>()
                 {
                     Result = false,
-                    Errors = new List<string>()
-                        {
-                            "No se encontro el local asignado"
-                        }
+                    Respose = "No se encontro el local asignado"
                 });
             }
-            if(local.Mediciones == null || local.Mediciones.Count == 0)
+            if (!local.Habilitado)
             {
-                medicion = new Medicion
-                {
-                    Finalizada = false,
-                    FechaRealizada = DateTime.Now,
-                    LocalesId = registro.LocalId
-                };
-                _context.Mediciones.Add(medicion);
-                await _context.SaveChangesAsync();
-                encuesta = new Encuesta
-                {
-                    FechaInicio = DateTime.Now,
-                    FechaCierre = null,
-                    DiasTrabajados = 0,
-                    CustomUserId = registro.UserId,
-                    LocalId = registro.LocalId,
-                    MedicionId = medicion.Id
-                };                
-                _context.Encuestas.Add(encuesta);
-                await _context.SaveChangesAsync();
-                return Ok(new ModelResult()
-                {
-                    Result = true,
-                    Contenido = "Encuesta creado correctamente"
-                });
-            }
-            foreach (Medicion mediciones in local.Mediciones)
-            {
-                if(MoreCurrentDate < mediciones.FechaRealizada)
-                {
-                    MoreCurrentDate = mediciones.FechaRealizada;
-                    ultimaMedicion = mediciones;
-                }
-            }
-            if (!ultimaMedicion.Finalizada)
-            {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new ObjectResult<Encuesta>()
                 {
                     Result = false,
-                    Errors = new List<string>()
-                        {
-                            "Ya hay una encuesta activa para este local"
-                        }
-                });                
+                    Respose = "Este local no esta habilitado"
+                });
             }
-            medicion = new Medicion
+            var ultimaEncuesta = await _context.Encuestas.Include(e => e.DetalleEncuestas).OrderByDescending(m => m.Id).FirstOrDefaultAsync();
+            var identificador = await _assignId.AssignSyncId(ultimaEncuesta == null ? "0" : ultimaEncuesta.SyncId, user.Email);
+            var comprobacion = await _context.Encuestas.Where(e => e.MedicionId == registro.MedicionId && e.LocalId == registro.LocalId).OrderByDescending(m => m.Id).FirstOrDefaultAsync();
+            if (comprobacion != null)
             {
-                Finalizada = false,
-                FechaRealizada = DateTime.Now,
-                LocalesId = registro.LocalId
-            };
-            _context.Mediciones.Add(medicion);
-            await _context.SaveChangesAsync();
-            encuesta = new Encuesta
+                return BadRequest(error: new ObjectResult<Encuesta>()
+                {
+                    Result = false,
+                    Respose = "Ya hay una encuesta activa para este local"
+                });
+            }
+            var encuesta = new Encuesta
             {
                 FechaInicio = DateTime.Now,
                 FechaCierre = null,
                 DiasTrabajados = 0,
                 CustomUserId = registro.UserId,
                 LocalId = registro.LocalId,
-                MedicionId = medicion.Id
+                MedicionId = registro.MedicionId,
+                SyncId = identificador
             };
             _context.Encuestas.Add(encuesta);
             await _context.SaveChangesAsync();
-            var ultimaEncuesta = await _context.Encuestas.Where(e => e.MedicionId == ultimaMedicion.Id).Include(e=>e.DetalleEncuestas).FirstOrDefaultAsync();
-            if(ultimaEncuesta.DetalleEncuestas != null || ultimaEncuesta.DetalleEncuestas.Count != 0)
-            {
-                var nuevoDetalleEncuestas = new Collection<DetalleEncuesta>();
-                foreach(DetalleEncuesta detalle in ultimaEncuesta.DetalleEncuestas)
-                {
-                    var nuevoDetalleEncuesta = new DetalleEncuesta
-                    {
-                        StockInicial = detalle.StockFinal,
-                        StockFinal = 0,
-                        Compra = detalle.Compra,
-                        Pvd = detalle.Pvd,
-                        Pvp = detalle.Pvp,
-                        EncuestaId = encuesta.Id,
-                        ProductoId = detalle.ProductoId,
-                    };
-                    nuevoDetalleEncuestas.Add(nuevoDetalleEncuesta);
-                }
-                encuesta.DetalleEncuestas = nuevoDetalleEncuestas;
-                await _context.SaveChangesAsync();
-                return Ok(new ModelResult()
-                {
-                    Result = true,
-                    Contenido = "Encuesta creado correctamente"
-                });
-            }
-            return Ok(new ModelResult()
+            return Ok(new ObjectResult<Encuesta>
             {
                 Result = true,
-                Contenido = "Encuesta creado correctamente"
+                Respose = "Encuesta creada correctamente"
             });
         }
 
@@ -178,63 +97,71 @@ namespace SondeoBackend.Controllers.Encuestas
         [HttpPost]
         public async Task<IActionResult> AgregarProductoEncuesta(RegistroProductoEncuesta registro)
         {
+            var encuesta = await _context.Encuestas.Include(e=>e.CustomUser).FirstOrDefaultAsync(i => i.Id == registro.EncuestaId);
+            var lastDetalleEncuesta = await _context.DetalleEncuestas.OrderByDescending(m => m.Id).FirstOrDefaultAsync();
+            var identificador = await _assignId.AssignSyncId(lastDetalleEncuesta == null ? "0" : lastDetalleEncuesta.SyncId, encuesta.CustomUser.Email);
             var detalleEncuesta = new DetalleEncuesta
             {
                 StockInicial = registro.StockInicial,
-                StockFinal = null,
+                StockFinal = -1,
                 Compra  = registro.Compra,
                 Pvd = registro.Pvd,
                 Pvp = registro.Pvp,
                 EncuestaId = registro.EncuestaId,
-                ProductoId = registro.ProductoId
+                ProductoId = registro.ProductoId,
+                SyncId = identificador
             };
             var productoEncuesta = await _context.DetalleEncuestas.Where(e=>e.ProductoId == registro.ProductoId && e.EncuestaId == registro.EncuestaId).FirstOrDefaultAsync();
-            if (productoEncuesta== null)
+            if (productoEncuesta == null)
             {
                 _context.DetalleEncuestas.Add(detalleEncuesta);
                 await _context.SaveChangesAsync();
-                return Ok(new ModelResult()
+                return Ok(new ObjectResult<Encuesta>
                 {
                     Result = true,
-                    Contenido = "Encuesta creado correctamente"
+                    Respose = "Producto agregado a la encuesta correctamente"
                 });
             }
-            return BadRequest(error: new ModelResult()
+            return BadRequest(error: new ObjectResult<Encuesta>
             {
                 Result = false,
-                Errors = new List<string>()
-                        {
-                            "Este producto ya esta asignado a esta encuesta"
-                        }
+                Respose = "Este producto ya esta asignado a esta encuesta"
             });
         }
 
-        [Route("CerrarProducto/{id}")]
+        [Route("TerminarProducto/{syncId}")]
         [HttpPost]
-        public async Task<IActionResult> CerrarProducto(int id, CerrarProducto registro)
+        public async Task<IActionResult> TerminarProducto(int stockFinal, string syncId)
         {
-            if(id != registro.Id)
-            {
-                return BadRequest(error: new ModelResult()
+            var detalle = await _context.DetalleEncuestas.FirstOrDefaultAsync(i => i.SyncId == syncId);
+            if(detalle.StockFinal != -1) {
+                return Ok(new ObjectResult<DetalleEncuesta>
                 {
-                    Result = false,
-                    Errors = new List<string>()
-                        {
-                            "El identificador no coincide"
-                        }
+                    Result = true,
+                    Respose = "El producto ya ha sido terminado"
                 });
             }
-            var detalle = await _context.DetalleEncuestas.FindAsync(id);
-            detalle.StockInicial = registro.StockInicial;
-            detalle.StockFinal = registro.StockFinal;
-            detalle.Compra = registro.Compra;
-            detalle.Pvp = registro.Pvp;
-            detalle.Pvd = registro.Pvd;
+            detalle.StockFinal = stockFinal;
             await _context.SaveChangesAsync();
-            return Ok(new ModelResult()
+            var cont = 0;
+            var encuesta = await _context.Encuestas.FirstOrDefaultAsync(i => i.Id == detalle.EncuestaId);
+            foreach(DetalleEncuesta detalles in encuesta.DetalleEncuestas)
+            {
+                if(detalle.StockFinal == -1)
+                {
+                    cont++;
+                }
+            }
+            if(cont == 0)
+            {
+                encuesta.FechaCierre = DateTime.Now;
+                encuesta.DiasTrabajados = (DateTime.Now - encuesta.FechaInicio).Value.Days;                
+                await _context.SaveChangesAsync();
+            }
+            return Ok(new ObjectResult<DetalleEncuesta>
             {
                 Result = true,
-                Contenido = "Producto cerrado correctamente"
+                Respose = "Producto registrado"
             });
         }
 
@@ -242,112 +169,14 @@ namespace SondeoBackend.Controllers.Encuestas
         [HttpPost]
         public async Task<IActionResult> TransferirEncuesta(int idEncuesta, int idUsuario)
         {
-            var encuesta = await _context.Encuestas.Include(e => e.Medicion).FirstOrDefaultAsync(i => i.Id == idEncuesta);
-            if (encuesta.Medicion.Finalizada)
-            {
-                var medicion = new Medicion
-                {
-                    Finalizada = false,
-                    FechaRealizada = DateTime.Now,
-                    LocalesId = encuesta.LocalId
-                };
-                _context.Mediciones.Add(medicion);
-                await _context.SaveChangesAsync();
-                var encuestaNueva = new Encuesta
-                {
-                    FechaInicio = DateTime.Now,
-                    FechaCierre = null,
-                    DiasTrabajados = null,
-                    CustomUserId = idUsuario,
-                    LocalId = encuesta.LocalId,
-                    MedicionId = medicion.Id
-                };
-                _context.Encuestas.Add(encuestaNueva);
-                await _context.SaveChangesAsync();
-                var ultimaEncuesta = await _context.Encuestas.Where(e => e.MedicionId == encuesta.Medicion.Id).Include(e => e.DetalleEncuestas).FirstOrDefaultAsync();
-                if (ultimaEncuesta.DetalleEncuestas != null || ultimaEncuesta.DetalleEncuestas.Count != 0)
-                {
-                    var nuevoDetalleEncuestas = new Collection<DetalleEncuesta>();
-                    foreach (DetalleEncuesta detalle in ultimaEncuesta.DetalleEncuestas)
-                    {
-                        var nuevoDetalleEncuesta = new DetalleEncuesta
-                        {
-                            StockInicial = detalle.StockFinal,
-                            StockFinal = null,
-                            Compra = detalle.Compra,
-                            Pvd = detalle.Pvd,
-                            Pvp = detalle.Pvp,
-                            EncuestaId = encuesta.Id,
-                            ProductoId = detalle.ProductoId,
-                        };
-                        nuevoDetalleEncuestas.Add(nuevoDetalleEncuesta);
-                    }
-                    encuesta.DetalleEncuestas = nuevoDetalleEncuestas;
-                    await _context.SaveChangesAsync();
-                    return Ok(new ModelResult()
-                    {
-                        Result = true,
-                        Contenido = "Encuesta creado correctamente"
-                    });
-                }
-            }            
+            var encuesta = await _context.Encuestas.Include(e => e.Medicion).FirstOrDefaultAsync(i => i.Id == idEncuesta);                  
             encuesta.CustomUserId = idUsuario;
             await _context.SaveChangesAsync();
-            return Ok(new ModelResult()
+            return Ok(new ObjectResult<Encuesta>
             {
                 Result = true,
-                Contenido = "Encuesta creado correctamente"
+                Respose = "Encuesta transferida correctamente"
             });
-        }
-
-        [Route("CerrarEncuesta")]
-        [HttpPost]
-        public async Task<IActionResult> CerrarEncuesta(int idEncuesta)
-        {
-            try
-            {
-                int cont = 0;
-                var encuesta = _context.Encuestas.Include(e => e.Medicion).Include(e => e.DetalleEncuestas).FirstOrDefault(i => i.Id == idEncuesta);
-                foreach(DetalleEncuesta detalle in encuesta.DetalleEncuestas)
-                {
-                    if(detalle.StockFinal == null)
-                    {
-                        cont++;
-                    }
-                }
-                if (cont != 0)
-                {
-                    return BadRequest(error: new ModelResult()
-                    {
-                        Result = false,                        
-                        Errors = new List<string>()
-                        {
-                            "No puedes cerrar esta encuesta, todavia tienes productos que no has terminado"
-                        }
-                    });
-                }
-                encuesta.FechaCierre = DateTime.Now;
-                encuesta.DiasTrabajados = (int?)(encuesta.FechaCierre - encuesta.FechaInicio).Value.TotalDays;
-                encuesta.Medicion.Finalizada = true;
-                await _context.SaveChangesAsync();
-                return Ok(new ModelResult()
-                {
-                    Result = true,
-                    Contenido = "Encuesta cerrada correctamente"
-                });
-            }
-            catch(Exception ex)
-            {
-                return BadRequest(error: new ModelResult()
-                {
-                    Result = false,
-                    Contenido =  "No se pudo cerrar la encuesta",                
-                    Errors = new List<string>()
-                        {
-                            ex.Message
-                        }
-                });
-            }
         }
     }
 }

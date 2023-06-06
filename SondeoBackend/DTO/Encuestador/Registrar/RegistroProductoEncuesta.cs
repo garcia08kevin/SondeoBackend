@@ -1,4 +1,4 @@
-﻿namespace SondeoBackend.DTO
+﻿namespace SondeoBackend.DTO.Encuestador.Registrar
 {
     public class RegistroProductoEncuesta
     {

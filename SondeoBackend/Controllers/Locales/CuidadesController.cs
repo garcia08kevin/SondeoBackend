@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SondeoBackend.Configuration;
 using SondeoBackend.Context;
 using SondeoBackend.DTO;
+using SondeoBackend.DTO.Result;
 using SondeoBackend.Models;
 
 namespace SondeoBackend.Controllers.Locales
@@ -35,13 +36,10 @@ namespace SondeoBackend.Controllers.Locales
             var cuidad = await _context.Ciudades.FindAsync(id);
             if (cuidad == null)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new ObjectResult<Ciudad>()
                 {
                     Result = false,
-                    Errors = new List<string>()
-                            {
-                                "No se encontro la cuidad"
-                            }
+                    Respose = "No se encontro la cuidad"
                 });
             }
             return Ok(cuidad);
@@ -53,21 +51,19 @@ namespace SondeoBackend.Controllers.Locales
             var cuidadExist = await _context.Ciudades.FindAsync(id);
             if (cuidadExist == null)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new UserResult()
                 {
                     Result = false,
-                    Errors = new List<string>()
-                            {
-                                "No se encontro la cuidad"
-                            }
+                    Respose = "No se encontro la cuidad"
                 });
             }
             _context.Entry(cuidadExist).State = EntityState.Modified;
             await _context.SaveChangesAsync();
-            return Ok(new ModelResult()
+            return Ok(new ObjectResult<Ciudad>()
             {
                 Result = true,
-                Contenido = "Ciudad Actualizada"
+                Respose = "Ciudad Actualizada",
+                Object = cuidad
             });
         }
 
@@ -78,22 +74,19 @@ namespace SondeoBackend.Controllers.Locales
             {
                 _context.Ciudades.Add(cuidad);
                 await _context.SaveChangesAsync();
-                return Ok(new ModelResult()
+                return Ok(new ObjectResult<Ciudad>()
                 {
                     Result = true,
-                    Contenido = "Ciudad Agregada"
+                    Respose = "Ciudad Agregada",
+                    Object = cuidad
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new UserResult()
                 {
-                    Contenido = "No se pudo agregar la ciudad",
                     Result = false,
-                    Errors = new List<string>()
-                        {
-                            ex.Message
-                        }
+                    Respose = $"No se pudo agregar la ciudad {ex.Message}"
                 });
             }
         }
@@ -104,21 +97,18 @@ namespace SondeoBackend.Controllers.Locales
             var cuidadExist = await _context.Ciudades.FindAsync(id);
             if (cuidadExist == null)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new ObjectResult<Ciudad>()
                 {
                     Result = false,
-                    Errors = new List<string>()
-                            {
-                                "No se encontro la cuidad"
-                            }
+                    Respose = "No se encontro la cuidad"
                 });
             }
             _context.Ciudades.Remove(cuidadExist);
             await _context.SaveChangesAsync();
-            return Ok(new ModelResult()
+            return Ok(new ObjectResult<Ciudad>()
             {
                 Result = true,
-                Contenido = "Ciudad Eliminad"
+                Respose = "Ciudad Eliminad"
             });
         }
     }

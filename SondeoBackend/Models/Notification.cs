@@ -6,11 +6,11 @@ namespace SondeoBackend.Models
 {
     public class Notification
     {
-        public int? Id { get; set; }
-        public int? Tipo { get; set; }
+        public int Id { get; set; }
+        public int Tipo { get; set; }
         public string? Mensaje { get; set; }
         public DateTime Fecha { get; set; }
-        public int? Identificacion { get; set; }
+        public int Identificacion { get; set; }
         [Required]
         [DefaultValue(false)]
         public bool Vista { get; set; }        

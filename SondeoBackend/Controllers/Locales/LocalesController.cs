@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using SondeoBackend.Configuration;
 using SondeoBackend.Context;
 using SondeoBackend.DTO;
+using SondeoBackend.DTO.Result;
 using SondeoBackend.Models;
 
 namespace SondeoBackend.Controllers.Locales
@@ -29,24 +30,21 @@ namespace SondeoBackend.Controllers.Locales
         {
             if (idCiudad == 0)
             {
-                return await _context.Locales.ToListAsync();
+                return await _context.Locales.Include(e => e.Ciudad).Include(e => e.Canal).ToListAsync();
             }
-            return await _context.Locales.Where(e => e.CiudadId == idCiudad).ToListAsync();
+            return await _context.Locales.Where(e => e.CiudadId == idCiudad).Include(e => e.Ciudad).Include(e => e.Canal).ToListAsync();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<IEnumerable<Local>>> GetLocalById(int id)
         {
-            var local = await _context.Locales.FindAsync(id);
+            var local = await _context.Locales.Include(e=> e.Ciudad).FirstOrDefaultAsync(i => i.Id == id);
             if (local == null)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new ObjectResult<Local>()
                 {
                     Result = false,
-                    Errors = new List<string>()
-                        {
-                            "No se encontro el elemento"
-                        }
+                    Respose = "No se encontro el elemento"
                 });
             }
             return Ok(local);
@@ -58,21 +56,18 @@ namespace SondeoBackend.Controllers.Locales
             var localExist = await _context.Locales.FindAsync(id);
             if (localExist == null)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new ObjectResult<Local>()
                 {
                     Result = false,
-                    Errors = new List<string>()
-                        {
-                            "No se encontro el local"
-                        }
+                    Respose = "No se encontro el local"
                 });
             }
             _context.Entry(local).State = EntityState.Modified;
             await _context.SaveChangesAsync();
-            return Ok(new ModelResult()
+            return Ok(new ObjectResult<Local>()
             {
                 Result = true,
-                Contenido = "Local Actualizado"
+                Respose = "Local Actualizado"
             });
         }
 
@@ -83,22 +78,18 @@ namespace SondeoBackend.Controllers.Locales
             {
                 _context.Locales.Add(local);
                 await _context.SaveChangesAsync();
-                return Ok(new ModelResult()
+                return Ok(new ObjectResult<Local>()
                 {
                     Result = true,
-                    Contenido = "Local Agregado"
+                    Respose = "Local Agregado"
                 });
             }
             catch(Exception ex)
             {
-                return BadRequest(error: new ModelResult()
-                {
-                    Contenido= "No se pudo agregar el local",
+                return BadRequest(error: new ObjectResult<Local>()
+                {                    
                     Result = false,
-                    Errors = new List<string>()
-                        {
-                            ex.Message
-                        }
+                    Respose = $"No se pudo agregar el local {ex.Message}"
                 });
             }
         }
@@ -109,21 +100,18 @@ namespace SondeoBackend.Controllers.Locales
             var local = await _context.Locales.FindAsync(id);
             if (local == null)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new ObjectResult<Local>()
                 {
                     Result = false,
-                    Errors = new List<string>()
-                        {
-                            "No se encontro el local"
-                        }
+                    Respose = "No se encontro el local"
                 });
             }
             _context.Locales.Remove(local);
             await _context.SaveChangesAsync();
-            return Ok(new ModelResult()
+            return Ok(new ObjectResult<Local>()
             {
                 Result = true,
-                Contenido = "Local Eliminado"
+                Respose = "Local Eliminado"
             });
         }        
     }

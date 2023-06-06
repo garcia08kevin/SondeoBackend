@@ -11,7 +11,9 @@ namespace SondeoBackend.Configuration
         public bool CuentaActiva { get; set; }
         [Required]
         public string? Name { get; set; }
+        public byte[]? Imagen { get; set; }
         [Required]
         public string? Lastname { get; set; }
+        public string? Alias { get; set; }
     }
 }

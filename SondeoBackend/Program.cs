@@ -91,7 +91,7 @@ var options = new JsonSerializerOptions
     ReferenceHandler = ReferenceHandler.Preserve
 };
 
-
+builder.Services.AddTransient<AssignId>();
 
 builder.Services.AddMvc().AddControllersAsServices().AddNewtonsoftJson(options =>
     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore

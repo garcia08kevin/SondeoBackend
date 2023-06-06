@@ -6,8 +6,8 @@ namespace SondeoBackend.Models
 {
     public class Encuesta
     {
-        public int? Id { get; set; }
-        public DateTime FechaInicio { get; set; }
+        public int Id { get; set; }
+        public DateTime? FechaInicio { get; set; }
         public DateTime? FechaCierre { get; set; }
         public int? DiasTrabajados { get; set; }
         [ForeignKey("CustomUserId")]
@@ -20,6 +20,7 @@ namespace SondeoBackend.Models
         [ForeignKey("MedicionId")]
         public Medicion? Medicion { get; set; }
         public int? MedicionId { get; set; }
-        public ICollection<DetalleEncuesta>? DetalleEncuestas { get; set; }
+        public string SyncId { get; set; }
+        public IEnumerable<DetalleEncuesta>? DetalleEncuestas { get; set; }
     }
 }

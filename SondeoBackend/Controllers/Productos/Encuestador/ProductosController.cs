@@ -12,6 +12,11 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Identity;
 using SondeoBackend.DTO;
 using Microsoft.Win32;
+using SondeoBackend.DTO.Encuestador.Registrar;
+using SondeoBackend.DTO.Result;
+using SondeoBackend.DTO.Encuestador.Mostrar;
+using SondeoBackend.DTO.UserControl;
+using System.Web.WebPages;
 
 namespace SondeoBackend.Controllers.Productos.Encuestador
 {
@@ -22,99 +27,158 @@ namespace SondeoBackend.Controllers.Productos.Encuestador
         private readonly DataContext _context;
         private readonly IHubContext<Hubs> _hubs;
         private readonly UserManager<CustomUser> _userManager;
+        private readonly AssignId _assignId;
 
-        public ProductosController(DataContext context, IHubContext<Hubs> hubs, UserManager<CustomUser> userManager)
+        public ProductosController(DataContext context, IHubContext<Hubs> hubs, UserManager<CustomUser> userManager, AssignId assignId)
         {
             _userManager = userManager;
             _hubs = hubs;
             _context = context;
+            _assignId = assignId;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Producto>>> GetProductos()
+        public async Task<ActionResult<IEnumerable<Producto>>> GetProductos(string email)
         {
-            if (_context.Productos == null)
-            {
-                return NotFound();
-            }
-            return await _context.Productos.Where(e=> e.Activado == true).Include(e => e.Marca).Include(e => e.Categoria).Include(e => e.Propiedades).ToListAsync();
+            var alias = await _assignId.UserAlias(email);
+            return await _context.Productos.Where(e=> e.Activado == true || e.SyncId.Contains(alias)).Include(e => e.Marca).Include(e => e.Categoria).Include(e => e.Propiedades).ToListAsync();
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Producto>> GetProducto(int id)
+        [HttpGet("{syncId}")]
+        public async Task<ActionResult<Producto>> GetProducto(string syncId)
         {
-            var producto = await _context.Productos.Include(e => e.Propiedades).Include(e => e.Marca).Include(e => e.Categoria).FirstOrDefaultAsync(i => i.Id == id);
-            if (producto== null)
-            {
-                return BadRequest();
-            }
-            return producto;
+            return await _context.Productos.Include(e => e.Propiedades).Include(e => e.Marca).Include(e => e.Categoria).FirstOrDefaultAsync(i => i.SyncId.Equals(syncId));
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutProducto(int id, Producto producto)
+        [HttpPut("{syncId}")]
+        public async Task<IActionResult> PutProducto(string syncId, RegistroProducto registro)
         {
-            if (id != producto.Id)
+            if (syncId.Contains("ADMIN"))
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new ObjectResult<Producto>()
                 {
                     Result = false,
-                    Errors = new List<string>()
-                        {
-                            "No se encontro el producto"
-                        }
+                    Respose = "No puedes modifica este elemento"
                 });
             }
-            _context.Entry(producto).State = EntityState.Modified;
+            var producto = await _context.Productos.FirstOrDefaultAsync(i => i.SyncId == syncId);
+            var marca = await _context.Marcas.FirstOrDefaultAsync(i => i.SyncId == registro.MarcaSyncId);
+            var propiedades = await _context.Propiedades.FirstOrDefaultAsync(i => i.SyncId == registro.PropiedadesSyncId);
+            producto.CategoriaId = registro.CategoriaSyncId;
+            producto.MarcaId = marca.Id;
+            producto.PropiedadesId = propiedades.Id;
             await _context.SaveChangesAsync();
-            return Ok(new ModelResult()
+            return Ok(new ObjectResult<Producto>()
             {
                 Result = true,
-                Contenido = "Producto modificado correctamente"
+                Respose = "Producto modificado correctamente",
+                Object = producto
             });
         }
 
         [HttpPost]
-        public async Task<ActionResult<Producto>> PostProducto(RegistroProducto registro)
+        public async Task<ActionResult<Producto>> PostProducto([FromForm] RegistroProducto registro, string email, IFormFile? imagen)
         {
-            var producto = new Producto()
+            try
             {
-                Nombre = registro.Nombre,
-                CategoriaId = registro.CategoriaId,
-                MarcaId = registro.MarcaId,
-                PropiedadesId = registro.PropiedadesId,
-                Activado = false,
-                CustomUserId = registro.CustomUserId
-            };           
-            var user = await _userManager.FindByIdAsync(Convert.ToString(registro.CustomUserId));
-            var categoriaProducto = await _context.Categorias.FindAsync(producto.CategoriaId);
-            if (user != null && categoriaProducto != null ) {
+                byte[] bytes;
+                using (BinaryReader br = new BinaryReader(imagen.OpenReadStream()))
+                {
+                    bytes = br.ReadBytes((int)imagen.Length);
+                }
+                var lastProduct = await _context.Productos.OrderByDescending(producto => producto.Id).FirstOrDefaultAsync();
+                var identificador = await _assignId.AssignSyncId(lastProduct == null ? "0" : lastProduct.SyncId, email);
+                if (identificador.IsEmpty())
+                {
+                    return BadRequest(error: new ObjectResult<Producto>()
+                    {
+                        Result = false,
+                        Respose = "El email que ingresaste no pertenece a ningun usuario"
+                    });
+                };
+
+                var productoConfirmacion = await _context.Productos.Where(p => p.Nombre.Equals(registro.Nombre)).FirstOrDefaultAsync();
+                if(productoConfirmacion != null)
+                {
+                    return BadRequest(error: new ObjectResult<Producto>()
+                    {
+                        Result = false,
+                        Respose = "Ya hay un producto con el mismo nombre"
+                    });
+                }
+                if (lastProduct == null)
+                {
+                    identificador = await _assignId.AssignSyncId("0", email);
+                }
+                else
+                {
+                    identificador = await _assignId.AssignSyncId(lastProduct.SyncId, email);
+                }
+                var marca = await _context.Marcas.FirstOrDefaultAsync(i => i.SyncId == registro.MarcaSyncId);
+                var propiedad = await _context.Propiedades.FirstOrDefaultAsync(i => i.SyncId == registro.PropiedadesSyncId);
+                var producto = new Producto()
+                {
+                    Nombre = registro.Nombre,
+                    Imagen = bytes,
+                    CategoriaId = registro.CategoriaSyncId,
+                    MarcaId = marca.Id,
+                    PropiedadesId = propiedad.Id,
+                    Activado = false,
+                    SyncId = identificador
+                };
                 _context.Productos.Add(producto);
                 await _context.SaveChangesAsync();
-                var mensajeNotificacion = $"El usuario {user.Name} {user.Lastname} ha registrado el producto {producto.Nombre} en la categoria {categoriaProducto.NombreCategoria}";
-                var notificacion = new Notification()
-                {
-                    Tipo = 2,
-                    Fecha = DateTime.Now,
-                    Mensaje = mensajeNotificacion,
-                    Identificacion = producto.Id
-                };
-                _context.Notifications.Add(notificacion);
-                await _hubs.Clients.All.SendAsync("Notificacion", mensajeNotificacion);
-                await _context.SaveChangesAsync();
-                return Ok(new ModelResult()
+                return Ok(new ObjectResult<MostrarProducto>()
                 {
                     Result = true,
-                    Contenido = "Producto creado correctamente"
+                    Respose = "Producto creado correctamente",
+                    Object = new MostrarProducto
+                    {
+                        SyncId = propiedad.SyncId,
+                        Nombre = registro.Nombre,
+                        CategoriaId = registro.CategoriaSyncId,
+                        MarcaSyncId = marca.SyncId,
+                        PropiedadSyncId = propiedad.SyncId
+                }
                 });
             }
-            return BadRequest(error: new ModelResult()
+            catch (Exception ex)
             {
-                Result = false,
-                Errors = new List<string>()
-                        {
-                            "No se pudo crear el producto"
-                        }
+                return BadRequest(error: new ObjectResult<Producto>()
+                {
+                    Result = false,
+                    Respose = $"No se pudo crear el producto {ex.Message}"
+                });
+            }            
+        }
+
+        [HttpDelete("{syncId}")]
+        public async Task<IActionResult> DeleteProducto(string syncId)
+        {
+            var producto = await _context.Productos.FirstOrDefaultAsync(i => i.SyncId == syncId);
+            if (producto == null)
+            {
+                return BadRequest(error: new ObjectResult<Producto>()
+                {
+                    Result = false,
+                    Respose = "No se encontro el producto"
+                });
+            }
+            if (syncId.Contains("ADMIN"))
+            {
+                return BadRequest(error: new ObjectResult<Producto>()
+                {
+                    Result = false,
+                    Respose = "No puedes eliminar este producto"
+                });
+            }
+            _context.Productos.Remove(producto);
+            await _context.SaveChangesAsync();
+
+            return Ok(new ObjectResult<Producto>()
+            {
+                Result = true,
+                Respose = "Producto eliminado correctamente"
             });
         }
     }

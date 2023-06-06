@@ -8,7 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using MimeKit;
 using SondeoBackend.Configuration;
 using SondeoBackend.Context;
-using SondeoBackend.DTO;
+using SondeoBackend.DTO.Result;
+using SondeoBackend.DTO.UserControl;
 
 namespace SondeoBackend.Controllers.UserManagement.Administrador
 {
@@ -42,39 +43,43 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
         {
             if (ModelState.IsValid)
             {
+                var alias = "";
                 var user_exist = await _userManager.FindByEmailAsync(user.Email);
                 if (user_exist != null)
                 {
-                    return BadRequest(error: new ModelResult()
+                    return BadRequest(error: new UserResult()
                     {
                         Result = false,
-                        Errors = new List<string>()
-                        {
-                            "El correo ingresado ya existe"
-                        }
+                        Respose = "El correo ingresado ya existe"
                     });
-                }
-                var new_user = new CustomUser()
-                {
-                    Email = user.Email,
-                    UserName = user.Email,
-                    Name = user.Name,
-                    Lastname = user.Lastname
-                };
+                }                
                 var role_exist = await _roleManager.FindByNameAsync(user.Role);
                 if (role_exist == null)
                 {
-                    return BadRequest(error: new ModelResult()
+                    return BadRequest(error: new UserResult()
                     {
                         Result = false,
-                        Errors = new List<string>()
-                        {
-                            "El Rol no esta registrado en el sistema"
-                        }
+                        Respose = "El Rol no esta registrado en el sistema"
                     });
                 }
                 else
                 {
+                    if(user.Role.Equals("Administrador"))
+                    {
+                        alias = $"{user.Lastname[0]}{user.Name}_Admin";
+                    }
+                    else
+                    {
+                        alias = $"{user.Lastname[0]}{user.Name}_Encue";
+                    }
+                    var new_user = new CustomUser()
+                    {
+                        Email = user.Email,
+                        UserName = user.Email,
+                        Name = user.Name,
+                        Lastname = user.Lastname,
+                        Alias = alias.ToUpper()
+                    };
                     var pass_generate = GenerateRandomPassword();
                     var is_create = await _userManager.CreateAsync(new_user, pass_generate);
                     if (is_create.Succeeded)
@@ -82,20 +87,17 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
                         var body = $"<div class=\"homePage\">\r\n    <div class=\"col-xs-12 col-sm-12 col-md-offset-2 col-md-10 col-lg-offset-2 col-lg-10\">\r\n        <div class=\"container col-md-12 col-lg-12\">\r\n            <!--Inicio recuperar contraseña -->\r\n     <h2 class=\"form-signin-heading recuperarPassTitl text-center\">Tu cuenta ha sido creada</h2>\r\n     <p class=\"subtreestablecerPass text-center\">Hola nombre, tu cuenta en Sondeo ha sido activada, estas son tus credenciales:</p>       \r\n        <ul>\r\n            <li> Email: {new_user.Email} XD</li>\r\n            <li> Contraseña: {pass_generate} </li>\r\n            <li> Rol: {user.Role} ss </li>        \r\n        </ul>\r\n    </div> \r\n </div> ";
                         SendEmail(body, new_user.Email, "CuentaActivada");
                         await _userManager.AddToRoleAsync(new_user, user.Role);
-                        return Ok(new ModelResult()
+                        return Ok(new UserResult()
                         {
                             Result = true,
                             Token = pass_generate,
-                            Contenido = "El usuario a sido generado con exito esta es su clave temporal"
+                            Respose = "El usuario a sido generado con exito esta es su clave temporal"
                         });
                     }
-                    return BadRequest(error: new ModelResult()
+                    return BadRequest(error: new UserResult()
                     {
                         Result = false,
-                        Errors = new List<string>()
-                        {
-                            "Error al registrar el usuario"
-                        }
+                        Respose = "Error al registrar el usuario"
                     });
                 }
             }
@@ -103,11 +105,44 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
         }
 
         [HttpGet]
-        [Route("GetAllUsers")]
+        [Route("GetUsers")]
         public async Task<IActionResult> GetAllUsers()
         {
             var users = await _userManager.Users.ToListAsync();
             return Ok(users);
+        }
+
+        [HttpPost]
+        [Route("GetUsersById")]
+        public async Task<IActionResult> GetUsersById(int id)
+        {
+            if (ModelState.IsValid)
+            {
+                var user_exist = await _userManager.FindByIdAsync(Convert.ToString(id));
+                if (user_exist == null)
+                {
+                    return BadRequest(error: new UserResult()
+                    {
+                        Result = false,
+                        Respose = "El usuario no esta registrado"
+                    });
+                }
+                var role = await _userManager.GetRolesAsync(user_exist);
+                return Ok(new UserDetail()
+                {
+                    Name = user_exist.Name,
+                    Lastname = user_exist.Lastname,
+                    Role = role[0],
+                    Email = user_exist.Email,
+                    Activado = user_exist.CuentaActiva,
+                    CorreoActivado = user_exist.EmailConfirmed
+                });
+            }
+            return BadRequest(error: new UserResult()
+            {
+                Result = false,
+                Respose = "No se pudo obtener los datos del usuario"
+            });
         }
 
         [HttpGet]
@@ -160,13 +195,10 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
             var user_exist = await _userManager.FindByIdAsync(Convert.ToString(userId));
             if (user_exist == null)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new UserResult()
                 {
                     Result = false,
-                    Errors = new List<string>()
-                        {
-                            "El usuario no esta registrado"
-                        }
+                    Respose = "El usuario no esta registrado"
                 });
             }
             var token = await _userManager.GeneratePasswordResetTokenAsync(user_exist);
@@ -176,20 +208,17 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
             {
                 user_exist.EmailConfirmed = false;
                 await _context.SaveChangesAsync();
-                return Ok(new ModelResult()
+                return Ok(new UserResult()
                 {
                     Result = true,
                     Token = password,
-                    Contenido = "Se ha reseteado el usuario con exito"
+                    Respose = "Se ha reseteado el usuario con exito"
                 });
             }
-            return BadRequest(error: new ModelResult()
+            return BadRequest(error: new UserResult()
             {
                 Result = false,
-                Errors = new List<string>()
-                        {
-                            "No se pudo resetar la contraseña del usuario"
-                        }
+                Respose = "No se pudo resetar la contraseña del usuario"
             });
         }
 
@@ -201,25 +230,25 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
             if (user == null)
             {
                 _logger.LogInformation($"El usuario no exite");
-                return BadRequest(new ModelResult
+                return BadRequest(new UserResult
                 {
                     Result = false,
-                    Contenido = $"El usuario no exite"
+                    Respose = $"El usuario no exite"
                 });
             }
             var result = await _userManager.DeleteAsync(user);
             if (result.Succeeded)
             {
-                return Ok(new ModelResult
+                return Ok(new UserResult
                 {
                     Result = true,
-                    Contenido = "Se ha Eliminado el Usuario"
+                    Respose = "Se ha Eliminado el Usuario"
                 });
             }
             else
             {
                 _logger.LogInformation("No se pudo eliminar el usuario");
-                return BadRequest(new ModelResult { Result = false, Contenido = "No se pudo eliminar el usuario" });
+                return BadRequest(new UserResult { Result = false, Respose = "No se pudo eliminar el usuario" });
             }
         }
 

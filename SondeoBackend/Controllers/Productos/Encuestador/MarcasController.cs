@@ -1,57 +1,54 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Win32;
 using SondeoBackend.Configuration;
 using SondeoBackend.Context;
-using SondeoBackend.DTO;
 using SondeoBackend.DTO.Result;
-using SondeoBackend.DTO.UserControl;
 using SondeoBackend.Models;
+using System.Web.Helpers;
 
-namespace SondeoBackend.Controllers.Productos.Administrador
+namespace SondeoBackend.Controllers.Productos.Encuestador
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MarcasAdminController : ControllerBase
+    public class MarcasController : ControllerBase
     {
         private readonly DataContext _context;
         private readonly AssignId _assignId;
 
-        public MarcasAdminController(DataContext context, AssignId assignId)
+        public MarcasController(DataContext context, AssignId assignId)
         {
             _assignId = assignId;
             _context = context;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Marca>>> GetMarcas()
+        public async Task<ActionResult<IEnumerable<Marca>>> GetMarcas(string email)
         {
-            return await _context.Marcas.ToListAsync();
+            var alias = await _assignId.UserAlias(email);
+            return await _context.Marcas.Where(e => e.SyncId.Contains("ADMIN") || e.SyncId.Contains(alias)).ToListAsync();
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Marca>> GetMarca(int id)
+        [HttpGet("{syncId}")]
+        public async Task<ActionResult<Marca>> GetMarca(string syncId)
         {
-            var marca = await _context.Marcas.FindAsync(id);
+            var marca = await _context.Marcas.FirstOrDefaultAsync(i => i.SyncId.Equals(syncId));
             if (marca == null)
             {
                 return BadRequest(error: new ObjectResult<Marca>()
                 {
                     Result = false,
                     Respose = "No se ha encontrado elemento"
-                });            
+                });
             }
             return marca;
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutMarca(int id, Marca marca)
+        [HttpPut("{syncId}")]
+        public async Task<IActionResult> PutMarca(string syncId, Marca marca)
         {
-            if (id != marca.Id)
+            if (syncId.Equals(marca.SyncId))
             {
                 return BadRequest(error: new ObjectResult<Marca>()
                 {
@@ -59,7 +56,7 @@ namespace SondeoBackend.Controllers.Productos.Administrador
                     Respose = "El elemento no coincide"
                 });
             }
-            if (id == 1)
+            if (syncId.Contains("ADMIN"))
             {
                 return BadRequest(error: new ObjectResult<Marca>()
                 {
@@ -84,14 +81,23 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             {
                 var identificador = "";
                 _context.Marcas.Add(marca);
-                var lastProduct = await _context.Marcas.OrderByDescending(m => m.Id).FirstOrDefaultAsync();
-                if (lastProduct == null)
+                var lastMarca = await _context.Marcas.OrderByDescending(m => m.Id).FirstOrDefaultAsync();
+                var marcaConfirmacion = await _context.Marcas.Where(p => p.NombreMarca.Equals(marca.NombreMarca)).FirstOrDefaultAsync();
+                if (marcaConfirmacion != null)
+                {
+                    return BadRequest(error: new ObjectResult<Producto>()
+                    {
+                        Result = false,
+                        Respose = "Ya hay una marca con el mismo nombre"
+                    });
+                }
+                if (lastMarca == null)
                 {
                     identificador = await _assignId.AssignSyncId("0", email);
                 }
                 else
                 {
-                    identificador = await _assignId.AssignSyncId(lastProduct.SyncId, email);
+                    identificador = await _assignId.AssignSyncId(lastMarca.SyncId, email);
                 }
                 marca.SyncId = identificador;
                 await _context.SaveChangesAsync();
@@ -103,25 +109,21 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             }
             catch (Exception ex)
             {
-                return BadRequest(error: new ObjectResult<Marca>() { Result = false, Respose = $"No puedes agregar el elemento {ex.Message}"});
+                return BadRequest(error: new ObjectResult<Marca>() { Result = false, Respose = $"No puedes agregar el elemento {ex.Message}" });
             }
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteMarca(int id)
+        [HttpDelete("{syncId}")]
+        public async Task<IActionResult> DeleteMarca(string syncId)
         {
-            if (_context.Marcas == null)
-            {
-                return NotFound();
-            }
-            var marca = await _context.Marcas.FindAsync(id);
-            if (id == 1)
+            var marca = await _context.Marcas.FirstOrDefaultAsync(i => i.SyncId.Equals(syncId));
+            if (syncId.Contains("ADMIN"))
             {
                 return BadRequest(error: new ObjectResult<Marca>() { Result = false, Respose = "No puedes eliminar este elemento" });
             }
             if (marca == null)
             {
-                return BadRequest(error: new ObjectResult<Marca>() { Result = false, Respose = "No se ha encontrado elemento" });
+                return BadRequest(error: new ObjectResult<Marca>() { Result = false, Respose = "No se ha encontrado el elemento" });
             }
             _context.Marcas.Remove(marca);
             await _context.SaveChangesAsync();

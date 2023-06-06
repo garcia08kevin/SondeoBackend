@@ -4,11 +4,12 @@ namespace SondeoBackend.Models
 {
     public class Medicion
     {
-        public int? Id { get; set; }
-        public bool Finalizada { get; set; }
-        public DateTime FechaRealizada { get; set; }
-        [ForeignKey("LocalesId")]
-        public Local? Local { get; set; }
-        public int? LocalesId { get; set; }
+        public int Id { get; set; }
+        public string? nombreMedicion { get; set; }
+        [ForeignKey("CiudadId")]
+        public Ciudad? Ciudad { get; set; }
+        public int? CiudadId { get; set; }
+        public bool Activa { get; set; }
+        public IEnumerable<Encuesta>? Encuestas { get; set; }
     }
 }

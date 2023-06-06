@@ -8,6 +8,7 @@ namespace SondeoBackend.Models
     {
         public int Id { get; set; }
         public string? Nombre { get; set; }
+        public byte[]? Imagen { get; set; }
         [DefaultValue(false)]
         public bool Activado { get; set; }
         [ForeignKey("CategoriaId")]        
@@ -20,9 +21,6 @@ namespace SondeoBackend.Models
         [ForeignKey("PropiedadesId")]
         public Propiedades? Propiedades { get; set; }
         public int PropiedadesId { get; set; }
-
-        [ForeignKey("CustomUserId")]
-        public CustomUser? User { get; set; }
-        public int CustomUserId { get; set; }        
+        public string? SyncId { get; set; }
     }
 }

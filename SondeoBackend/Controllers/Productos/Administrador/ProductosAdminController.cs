@@ -6,7 +6,9 @@ using Newtonsoft.Json.Linq;
 using SondeoBackend.Configuration;
 using SondeoBackend.Context;
 using SondeoBackend.DTO;
+using SondeoBackend.DTO.Result;
 using SondeoBackend.Models;
+using System.Web.WebPages;
 
 namespace SondeoBackend.Controllers.Productos.Administrador
 {
@@ -15,9 +17,11 @@ namespace SondeoBackend.Controllers.Productos.Administrador
     public class ProductosAdminController : ControllerBase
     {
         private readonly DataContext _context;
+        private readonly AssignId _assignId;
 
-        public ProductosAdminController(DataContext context)
+        public ProductosAdminController(DataContext context, AssignId assignId)
         {
+            _assignId = assignId;
             _context = context;
         }        
 
@@ -30,15 +34,15 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             }
             return await _context.Productos.Include(e => e.Marca).Include(e => e.Categoria).Include(e => e.Propiedades).ToListAsync();
         }
-        [Route("GetProductosByEncuestador/{id}")]
+        [Route("NoActivados")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Producto>>> GetProductosByEncuestador(int id)
+        public async Task<ActionResult<IEnumerable<Producto>>> GetProductosNoctivados()
         {
             if (_context.Productos == null)
             {
                 return NotFound();
             }
-            return await _context.Productos.Where(e => e.CustomUserId == id).Include(e => e.User).Include(e => e.Marca).Include(e => e.Categoria).Include(e => e.Propiedades).ToListAsync();
+            return await _context.Productos.Where(e => !e.Activado).Include(e => e.Marca).Include(e => e.Categoria).Include(e => e.Propiedades).ToListAsync();
         }
 
         [HttpGet("{id}")]
@@ -55,36 +59,103 @@ namespace SondeoBackend.Controllers.Productos.Administrador
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProducto(Producto producto, int id)
         {
-            if (id != producto.Id)
+            var producto_exist = await _context.Productos.FindAsync(id);
+            if (producto_exist == null)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new ObjectResult<Producto>()
                 {
                     Result = false,
-                    Errors = new List<string>()
-                        {
-                            "No se encontro el producto"
-                        }
+                    Respose = "No se encontro el producto"
                 });
             }
-            _context.Entry(producto).State = EntityState.Modified;
+            producto_exist.Activado = producto.Activado;
+            producto_exist.Nombre = producto.Nombre;
+            producto_exist.PropiedadesId = producto.PropiedadesId;
+            producto_exist.MarcaId = producto.MarcaId;
+            producto_exist.CategoriaId = producto.CategoriaId;
             await _context.SaveChangesAsync();
-            return Ok(new ModelResult()
+            return Ok(new ObjectResult<Producto>()
             {
                 Result = true,
-                Contenido = "Producto modificado correctamente"
+                Respose = "Producto modificado correctamente"
             });
         }
 
         [HttpPost]
-        public async Task<ActionResult<Producto>> PostProducto(Producto producto)
+        public async Task<ActionResult<Producto>> PostProducto([FromForm] RegistrarProductoAdmin producto)
         {
-            _context.Productos.Add(producto);
+            byte[] bytes = null;
+            if (producto.Imagen != null)
+            {
+                using (BinaryReader br = new BinaryReader(producto.Imagen.OpenReadStream()))
+                {
+                    bytes = br.ReadBytes((int)producto.Imagen.Length);
+                }
+            }
+            var comprobarExistente = await _context.Productos.Where(e=> e.Nombre == producto.Nombre).Where(e => e.CategoriaId == producto.CategoriaId).Where(e => e.MarcaId == producto.MarcaId).Where(e => e.PropiedadesId == producto.PropiedadesId).FirstOrDefaultAsync();
+            if (comprobarExistente != null)
+            {
+                return BadRequest(error: new ObjectResult<Producto>()
+                {
+                    Result = false,
+                    Respose = "El producto con las caracteristicas que ingresaste ya esta en el sistema"
+                });
+            };
+            var lastProduct = await _context.Productos.OrderByDescending(producto => producto.Id).FirstOrDefaultAsync();
+            var identificador = await _assignId.AssignSyncId(lastProduct == null ? "0" : lastProduct.SyncId, producto.UserEmail);
+            if (identificador.IsEmpty()){
+                return BadRequest(error: new ObjectResult<Producto>()
+                {
+                    Result = false,
+                    Respose = "El email que ingresaste no pertenece a ningun usuario"
+                });
+            };
+            var productoAgregado = new Producto
+            {
+                Nombre = producto.Nombre,
+                Imagen = bytes == null ? null : bytes,
+                Activado = producto.Activado,
+                CategoriaId = producto.CategoriaId,
+                MarcaId = producto.MarcaId,
+                PropiedadesId = producto.PropiedadesId,
+                SyncId = identificador
+
+            };
+            _context.Productos.Add(productoAgregado);
             await _context.SaveChangesAsync();
 
-            return Ok(new ModelResult()
+            return Ok(new ObjectResult<Producto>()
             {
                 Result = true,
-                Contenido = "Producto creado correctamente"
+                Respose = "Producto creado correctamente",
+                Object = productoAgregado
+            });
+        }
+
+        [Route("CambiarImagen")]
+        [HttpPost]
+        public async Task<ActionResult<Producto>> CambiarImagen([FromForm] int id, IFormFile Imagen)
+        {
+            var producto_exist = await _context.Productos.FindAsync(id);
+            if (producto_exist == null)
+            {
+                return BadRequest(error: new ObjectResult<Producto>()
+                {
+                    Result = false,
+                    Respose = "No se encontro el producto"
+                });
+            }
+            byte[] bytes;
+            using (BinaryReader br = new BinaryReader(Imagen.OpenReadStream()))
+            {
+                bytes = br.ReadBytes((int)Imagen.Length);
+            }
+            producto_exist.Imagen = bytes;
+            await _context.SaveChangesAsync();
+            return Ok(new ObjectResult<Producto>()
+            {
+                Result = true,
+                Respose = "La imagen fue cambiada exitosamente"
             });
         }
 
@@ -106,19 +177,16 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             {
                 _context.Productos.Remove(productoRemplazado);
                 await _context.SaveChangesAsync();
-                return Ok(new ModelResult()
+                return Ok(new ObjectResult<Producto>()
                 {
                     Result = true,
-                    Contenido = "Producto remplazado correctamente"
+                    Respose = "Producto remplazado correctamente"
                 });
             }
-            return BadRequest(error: new ModelResult()
+            return BadRequest(error: new ObjectResult<Producto>()
             {
                 Result = false,
-                Errors = new List<string>()
-                        {
-                            "No se pudo remplazar el producto"
-                        }
+                Respose = "No se pudo remplazar el producto"
             });
         }
 
@@ -129,24 +197,24 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             var producto = await _context.Productos.FindAsync(id);
             if (producto == null)
             {
-                return BadRequest(new ModelResult { Result = false, Contenido = "No se pudo encontrar el producto" });
+                return BadRequest(new ObjectResult<Producto> { Result = false, Respose = "No se pudo encontrar el producto" });
             }
             if (producto.Activado)
             {
                 producto.Activado = false;
                 await _context.SaveChangesAsync();
-                return Ok(new ModelResult
+                return Ok(new ObjectResult<Producto>
                 {
                     Result = true,
-                    Contenido = "Se ha desactivado el producto correctamente"
+                    Respose = "Se ha desactivado el producto correctamente"
                 });
             }
             producto.Activado = true;
             await _context.SaveChangesAsync();
-            return Ok(new ModelResult
+            return Ok(new ObjectResult<Producto>
             {
                 Result = true,
-                Contenido = "Se ha activado el producto correctamente"
+                Respose = "Se ha activado el producto correctamente"
             });
         }
 
@@ -156,22 +224,19 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             var producto = await _context.Productos.FindAsync(id);
             if (producto == null)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new ObjectResult<Producto>()
                 {
                     Result = false,
-                    Errors = new List<string>()
-                        {
-                            "No se encontro el producto"
-                        }
+                    Respose = "No se encontro el producto"
                 });
             }
             _context.Productos.Remove(producto);
             await _context.SaveChangesAsync();
 
-            return Ok(new ModelResult()
+            return Ok(new ObjectResult<Producto>()
             {
                 Result = true,
-                Contenido = "Producto eliminado correctamente"
+                Respose = "Producto eliminado correctamente"
             });
         }
     }

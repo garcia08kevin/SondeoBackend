@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SondeoBackend.Context;
 using SondeoBackend.DTO;
+using SondeoBackend.DTO.Result;
 using SondeoBackend.Models;
 
 namespace SondeoBackend.Controllers.Productos.Administrador
@@ -54,27 +55,27 @@ namespace SondeoBackend.Controllers.Productos.Administrador
         {
             if (id != categoria.Id)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new ObjectResult<Categoria>()
                 {
                     Result = false,
-                    Contenido = "El elemento no coincide"
+                    Respose = "El elemento no coincide"
                 });
             }
             if (id == 1)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new ObjectResult<Categoria>()
                 {
                     Result = false,
-                    Contenido = "No puedes modificar este elemento"
+                    Respose = "No puedes modificar este elemento"
                 });
             }
             _context.Entry(categoria).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
-            return Ok(new ModelResult()
+            return Ok(new ObjectResult<Categoria>()
             {
                 Result = true,
-                Contenido = "Elemento modificado correctamente"
+                Respose = "Elemento modificado correctamente"
             });
         }
 
@@ -85,18 +86,18 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             {
                 _context.Categorias.Add(categoria);
                 await _context.SaveChangesAsync();
-                return Ok(new ModelResult()
+                return Ok(new ObjectResult<Categoria>()
                 {
                     Result = true,
-                    Contenido = "Elemento agregado correctamente"
+                    Respose = "Elemento agregado correctamente"
                 });
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new ObjectResult<Categoria>()
                 {
                     Result = false,
-                    Contenido = "No puedes agregar el elemento"
+                    Respose = $"No puedes agregar el elemento {ex}"
                 });
             }
         }
@@ -111,28 +112,28 @@ namespace SondeoBackend.Controllers.Productos.Administrador
             var categoria = await _context.Categorias.FindAsync(id);
             if (id == 1)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new ObjectResult<Categoria>()
                 {
                     Result = false,
-                    Contenido = "No puedes eliminar este elemento"
+                    Respose = "No puedes eliminar este elemento"
                 });
             }
             if (categoria == null)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new ObjectResult<Categoria>()
                 {
                     Result = false,
-                    Contenido = "No se ha encontrado elemento"
+                    Respose = "No se ha encontrado elemento"
                 });
             }
 
             _context.Categorias.Remove(categoria);
             await _context.SaveChangesAsync();
 
-            return Ok(new ModelResult()
+            return Ok(new ObjectResult<Categoria>()
             {
                 Result = true,
-                Contenido = "Elemento eliminado correctamente"
+                Respose = "Elemento eliminado correctamente"
             });
         }
     }

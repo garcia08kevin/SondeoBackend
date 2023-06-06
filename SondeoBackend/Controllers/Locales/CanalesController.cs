@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SondeoBackend.Configuration;
 using SondeoBackend.Context;
 using SondeoBackend.DTO;
+using SondeoBackend.DTO.Result;
 using SondeoBackend.Models;
 
 namespace SondeoBackend.Controllers.Locales
@@ -30,13 +31,10 @@ namespace SondeoBackend.Controllers.Locales
             var canal = await _context.Canales.FindAsync(id);
             if (canal == null)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new ObjectResult<Canal>()
                 {
                     Result = false,
-                    Errors = new List<string>()
-                        {
-                            "No se encontro el canal"
-                        }
+                    Respose = "No se encontro el canal"
                 });
             }
             return Ok(canal);
@@ -48,21 +46,18 @@ namespace SondeoBackend.Controllers.Locales
             var canalExist = await _context.Canales.FindAsync(id);
             if (canalExist == null)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new ObjectResult<Canal>()
                 {
                     Result = false,
-                    Errors = new List<string>()
-                            {
-                                "No se encontro el canal"
-                            }
+                    Respose = "No se encontro el canal"
                 });
             }
             _context.Entry(canal).State = EntityState.Modified;
             await _context.SaveChangesAsync();
-            return Ok(new ModelResult()
+            return Ok(new ObjectResult<Canal>()
             {
                 Result = true,
-                Contenido = "Canal Actualizado"
+                Respose = "Canal Actualizado"
             });
         }
 
@@ -73,22 +68,18 @@ namespace SondeoBackend.Controllers.Locales
             {
                 _context.Canales.Add(canal);
                 await _context.SaveChangesAsync();
-                return Ok(new ModelResult()
+                return Ok(new ObjectResult<Canal>()
                 {
                     Result = true,
-                    Contenido = "Canal Agregado"
+                    Respose = "Canal Agregado"
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new ObjectResult<Canal>()
                 {
-                    Contenido = "No se pudo agregar el Canal",
                     Result = false,
-                    Errors = new List<string>()
-                        {
-                            ex.Message
-                        }
+                    Respose = $"No se pudo agregar el Canal {ex.Message}"
                 });
             }
         }
@@ -99,21 +90,18 @@ namespace SondeoBackend.Controllers.Locales
             var canal = await _context.Canales.FindAsync(id);
             if (canal == null)
             {
-                return BadRequest(error: new ModelResult()
+                return BadRequest(error: new ObjectResult<Canal>()
                 {
                     Result = false,
-                    Errors = new List<string>()
-                            {
-                                "No se encontro el canal"
-                            }
+                    Respose = "No se encontro el canal"
                 });
             }
             _context.Canales.Remove(canal);
             await _context.SaveChangesAsync();
-            return Ok(new ModelResult()
+            return Ok(new ObjectResult<Canal>()
             {
                 Result = true,
-                Contenido = "Canal Eliminado"
+                Respose = "Canal Eliminado"
             });
         }
     }

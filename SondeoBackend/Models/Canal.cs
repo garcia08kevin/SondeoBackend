@@ -2,7 +2,7 @@
 {
     public class Canal
     {
-        public int? Id { get; set; }
+        public int Id { get; set; }
         public string? NombreCanal { get; set; }
     }
 }
