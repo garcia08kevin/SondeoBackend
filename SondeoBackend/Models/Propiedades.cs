@@ -4,6 +4,5 @@
     {
         public int Id{ get; set; }
         public string? NombrePropiedades { get; set; }
-        public string SyncId { get; set; }
     }
 }

@@ -138,10 +138,11 @@ namespace SondeoBackend.Controllers.UserManagement.Users
             var jwt_token = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_configuration.GetSection(key: "JwtConfig:Secret").Value);
             var claims = await GetValidClaims(user);
+            var role = await _userManager.GetRolesAsync(user);
             var tokenDescriptor = new SecurityTokenDescriptor()
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddHours(1),
+                Expires = role[0].Equals("Administrador") ? DateTime.UtcNow.AddHours(2) : DateTime.UtcNow.AddDays(15),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
             };
             var token = jwt_token.CreateToken(tokenDescriptor);

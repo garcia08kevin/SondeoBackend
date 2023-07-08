@@ -10,6 +10,7 @@ using SondeoBackend.Configuration;
 using SondeoBackend.Context;
 using SondeoBackend.DTO.Result;
 using SondeoBackend.DTO.UserControl;
+using SondeoBackend.Models;
 
 namespace SondeoBackend.Controllers.UserManagement.Administrador
 {
@@ -24,11 +25,9 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
         private readonly IConfiguration _configuration;
         private readonly RoleManager<CustomRole> _roleManager;
         private readonly ILogger<AccountsController> _logger;
-        private readonly RolesController _roles;
 
-        public AccountsController(DataContext context, RolesController roles, SignInManager<CustomUser> signInManager, UserManager<CustomUser> userManager, IConfiguration configuration, RoleManager<CustomRole> roleManager, ILogger<AccountsController> logger)
+        public AccountsController(DataContext context, SignInManager<CustomUser> signInManager, UserManager<CustomUser> userManager, IConfiguration configuration, RoleManager<CustomRole> roleManager, ILogger<AccountsController> logger)
         {
-            _roles = roles;
             _context = context;
             _signInManager = signInManager;
             _userManager = userManager;
@@ -37,6 +36,7 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
             _logger = logger;
         }
 
+        #region Manage Users
         [HttpPost]
         [Route("Registro")]
         public async Task<IActionResult> Register([FromBody] UserRegistration user)
@@ -52,7 +52,7 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
                         Result = false,
                         Respose = "El correo ingresado ya existe"
                     });
-                }                
+                }
                 var role_exist = await _roleManager.FindByNameAsync(user.Role);
                 if (role_exist == null)
                 {
@@ -64,7 +64,7 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
                 }
                 else
                 {
-                    if(user.Role.Equals("Administrador"))
+                    if (user.Role.Equals("Administrador"))
                     {
                         alias = $"{user.Lastname[0]}{user.Name}_Admin";
                     }
@@ -315,5 +315,135 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
 
             return new string(chars.ToArray());
         }
+        #endregion
+
+        #region Manage Roles
+
+        [HttpPost]
+        [Route("AddUserRole")]
+        public async Task<IActionResult> AddUserRole(string email, string roleName)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                _logger.LogInformation($"El usuario {email} no exite");
+                return BadRequest(new { error = $"El usuario {email} no exite" });
+            }
+            var roleExist = await _roleManager.RoleExistsAsync(roleName);
+            if (!roleExist)
+            {
+                _logger.LogInformation($"El rol {roleName} no exite");
+                return BadRequest(new { error = $"El rol {roleName} no exite" });
+            }
+            var result = await _userManager.AddToRoleAsync(user, roleName);
+            if (result.Succeeded)
+            {
+                return Ok(new
+                {
+                    result = "Role agregado correctamente"
+                });
+            }
+            else
+            {
+                _logger.LogInformation("No se pudo agregar el rol");
+                return BadRequest(new { error = "No se pudo agregar el rol" });
+            }
+        }
+
+        [HttpPost]
+        [Route("RemoveUserRole")]
+        public async Task<IActionResult> RemoveUserRole(string email, string roleName)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                _logger.LogInformation($"El usuario {email} no exite");
+                return BadRequest(new { error = $"El usuario {email} no exite" });
+            }
+            var roleExist = await _roleManager.RoleExistsAsync(roleName);
+            if (!roleExist)
+            {
+                _logger.LogInformation($"El rol {roleName} no exite");
+                return BadRequest(new { error = $"El rol {roleName} no exite" });
+            }
+            var result = await _userManager.RemoveFromRoleAsync(user, roleName);
+            if (result.Succeeded)
+            {
+                return Ok(new
+                {
+                    result = "Se ha retirado el rol correctamente"
+                });
+            }
+            else
+            {
+                _logger.LogInformation("No se pudo retirar el rol");
+                return BadRequest(new { error = "No se pudo retirar el rol" });
+            }
+        }
+        #endregion
+
+        #region Notificaciones
+        [Route("Notificaciones")]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Notification>>> GetNotifications()
+        {
+            if (_context.Notifications == null)
+            {
+                return NotFound();
+            }
+            return await _context.Notifications.OrderByDescending(p => p.Fecha).ToListAsync();
+        }
+
+        [Route("Notificaciones/MarcarComoLeido")]
+        [HttpPost]
+        public async Task<IActionResult> MarcarComoLeido(int id)
+        {
+            var notification = await _context.Notifications.FindAsync(id);
+            if (!notification.Vista)
+            {
+                notification.Vista = true;
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+            notification.Vista = false;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        [Route("Notificaciones/NoLeidas")]
+        [HttpGet]
+        public async Task<int> NotificacionesNoLeidas()
+        {
+            int cantidad = 0;
+            var notificaciones = await _context.Notifications.ToListAsync();
+            for (int i = 0; i < notificaciones.Count; i++)
+            {
+                if (!notificaciones[i].Vista)
+                {
+                    cantidad++;
+                }
+            }
+            return cantidad;
+        }
+
+        [HttpDelete("Notificaciones/{id}")]
+        public async Task<IActionResult> DeleteNotification(int id)
+        {
+            if (_context.Notifications == null)
+            {
+                return NotFound();
+            }
+            var notification = await _context.Notifications.FindAsync(id);
+            if (notification == null)
+            {
+                return NotFound();
+            }
+
+            _context.Notifications.Remove(notification);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+        #endregion
     }
 }

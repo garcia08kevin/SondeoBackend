@@ -15,7 +15,6 @@ namespace SondeoBackend.Models
         [ForeignKey("CiudadId")]
         public Ciudad? Ciudad { get; set; }
         public int CiudadId { get; set; }
-        public string? SyncId { get; set; }
         public bool Habilitado { get; set; }
         public ICollection<Encuesta>? Encuestas { get; set; }
     }

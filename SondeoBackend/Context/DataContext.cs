@@ -17,17 +17,16 @@ namespace SondeoBackend.Context
             if (!options.IsConfigured)
 
             {
-
-                options.UseSqlServer("A FALLBACK CONNECTION STRING");
+                options.UseNpgsql("A FALLBACK CONNECTION STRING");
+                //options.UseSqlServer("A FALLBACK CONNECTION STRING")
             }
 
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
-
-        {
-
+        {            
             base.OnModelCreating(modelBuilder);
         }
+
         public DbSet<CustomUser> CustomUsers { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Canal> Canales { get; set; }

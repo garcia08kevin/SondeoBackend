@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using NLog.Web;
 using SondeoBackend.Configuration;
 using SondeoBackend.Context;
@@ -12,12 +13,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
-var myArrowSpecificOrigins = "myArrowSpecificOrigins";
-
-// Add services to the container.
+//var myArrowSpecificOrigins = "myArrowSpecificOrigins";
 
 builder.Services.AddControllers(options => options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true);
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -40,8 +38,18 @@ builder.Services.AddCors(options =>
     //    });
 });
 
+//builder.Services.AddDbContext<DataContext>(optionsAction: options =>
+//    options.UseSqlServer(builder.Configuration.GetConnectionString(name: "DefaultConnection")));
+
 builder.Services.AddDbContext<DataContext>(optionsAction: options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString(name: "DefaultConnection")));
+{
+    //options.UseSqlServer(builder.Configuration.GetConnectionString(name: "Conexion2"),
+    //    sqlServerOptionsAction : sqlOptions =>
+    //    {
+    //        sqlOptions.EnableRetryOnFailure(maxRetryCount: 10, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null);
+    //    });
+    options.UseNpgsql(builder.Configuration.GetConnectionString(name: "Conexion2"));
+});
 
 builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection(key: "JwtConfig"));
 
@@ -68,7 +76,9 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddIdentity<CustomUser, CustomRole>(options => options.SignIn.RequireConfirmedAccount = false).AddEntityFrameworkStores<DataContext>()
     .AddTokenProvider<DataProtectorTokenProvider<CustomUser>>(TokenOptions.DefaultProvider);
+
 builder.Host.UseNLog();
+
 builder.Services.AddLogging();
 
 builder.Services.AddSignalR().AddHubOptions<Hubs>(options =>
@@ -76,9 +86,13 @@ builder.Services.AddSignalR().AddHubOptions<Hubs>(options =>
     options.EnableDetailedErrors = true;
 });
 
+builder.Services.Configure<IISServerOptions>(options =>
+{
+    options.MaxRequestBodySize = int.MaxValue;
+});
+
 builder.Services.Configure<IdentityOptions>(options =>
 {
-    // Default Password settings.
     options.Password.RequireDigit = false;
     options.Password.RequireLowercase = false;
     options.Password.RequireNonAlphanumeric = false;
@@ -97,9 +111,35 @@ builder.Services.AddMvc().AddControllersAsServices().AddNewtonsoftJson(options =
     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
 );
 
+builder.Services.AddSwaggerGen(setup =>
+{
+    var jwtSecurityScheme = new OpenApiSecurityScheme
+    {
+        BearerFormat = "JWT",
+        Name = "JWT Authentication",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = JwtBearerDefaults.AuthenticationScheme,
+        Reference = new OpenApiReference
+        {
+            Id = JwtBearerDefaults.AuthenticationScheme,
+            Type = ReferenceType.SecurityScheme
+        }
+    };
+
+    setup.AddSecurityDefinition(jwtSecurityScheme.Reference.Id, jwtSecurityScheme);
+
+    setup.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        { jwtSecurityScheme, Array.Empty<string>() }
+    });
+
+});
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -112,7 +152,7 @@ app.UseCors(x => x
            .SetIsOriginAllowed(origin => true)
            .AllowCredentials());
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthentication();
 
@@ -121,7 +161,6 @@ app.UseRouting();
 app.UseAuthorization();
 
 var hubConfiguration = new HubConfiguration { EnableDetailedErrors = true };
-
 
 app.UseEndpoints(routes =>
 {

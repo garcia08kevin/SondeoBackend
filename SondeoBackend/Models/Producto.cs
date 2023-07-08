@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using SondeoBackend.Configuration;
 
@@ -6,7 +7,9 @@ namespace SondeoBackend.Models
 {
     public class Producto
     {
-        public int Id { get; set; }
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)] 
+        public long? BarCode { get; set; }
         public string? Nombre { get; set; }
         public byte[]? Imagen { get; set; }
         [DefaultValue(false)]
@@ -21,6 +24,5 @@ namespace SondeoBackend.Models
         [ForeignKey("PropiedadesId")]
         public Propiedades? Propiedades { get; set; }
         public int PropiedadesId { get; set; }
-        public string? SyncId { get; set; }
     }
 }

@@ -1,9 +1,18 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace SondeoBackend.Configuration
 {
+    public class CustomUserRole : IdentityUserRole<int> { }
+    public class CustomUserClaim : IdentityUserClaim<int> { }
+    public class CustomUserLogin : IdentityUserLogin<int> { }
+
+    public class CustomRole : IdentityRole<int>
+    {
+        public CustomRole() { }
+        public CustomRole(string name) { Name = name; }
+    }
     public class CustomUser : IdentityUser<int>
     {
         [Required]

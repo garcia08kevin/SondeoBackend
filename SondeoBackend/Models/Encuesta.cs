@@ -20,7 +20,6 @@ namespace SondeoBackend.Models
         [ForeignKey("MedicionId")]
         public Medicion? Medicion { get; set; }
         public int? MedicionId { get; set; }
-        public string SyncId { get; set; }
         public IEnumerable<DetalleEncuesta>? DetalleEncuestas { get; set; }
     }
 }

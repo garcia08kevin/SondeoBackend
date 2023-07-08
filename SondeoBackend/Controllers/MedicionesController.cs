@@ -9,17 +9,17 @@ using SondeoBackend.DTO.Result;
 using SondeoBackend.Models;
 using System.Globalization;
 
-namespace SondeoBackend.Controllers.Encuestas
+namespace SondeoBackend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class EncuestasAdminController : ControllerBase
+    public class MedicionesController : ControllerBase
     {
         private readonly DataContext _context;
         private readonly UserManager<CustomUser> _userManager;
         private readonly AssignId _assignId;
 
-        public EncuestasAdminController(DataContext context, UserManager<CustomUser> userManager, AssignId assignId)
+        public MedicionesController(DataContext context, UserManager<CustomUser> userManager, AssignId assignId)
         {
             _assignId = assignId;
             _userManager = userManager;
@@ -34,16 +34,17 @@ namespace SondeoBackend.Controllers.Encuestas
                 .Include(e => e.Encuestas).ThenInclude(e => e.CustomUser)
                 .Include(e => e.Encuestas).ThenInclude(e => e.Local).Where(e => e.CiudadId == idCiudad).OrderByDescending(m => m.Id).ToListAsync();
         }
+
         [Route("MedicionesActivas")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Medicion>>> GetMedicionesActivas()
         {
-            
+
             return await _context.Mediciones
                 .Include(e => e.Encuestas).ThenInclude(e => e.CustomUser)
                 .Include(e => e.Encuestas).ThenInclude(e => e.Local)
                 .Include(e => e.Ciudad).Where(e => e.Activa).ToListAsync();
-        }        
+        }
 
         [Route("DetalleEncuesta/{id}")]
         [HttpGet]
@@ -55,7 +56,7 @@ namespace SondeoBackend.Controllers.Encuestas
         [Route("CrearMedicion")]
         [HttpPost]
         public async Task<ActionResult<Medicion>> CrearMedicion(int ciudadId)
-            {
+        {
             try
             {
                 var medicion = new Medicion();
@@ -68,7 +69,7 @@ namespace SondeoBackend.Controllers.Encuestas
                     {
                         Activa = true,
                         nombreMedicion = $"Medicion {ciudad.NombreCiudad} {mes.ToUpper()} {DateTime.Now.Year}",
-                        CiudadId = ciudadId                 
+                        CiudadId = ciudadId
                     };
                     _context.Mediciones.Add(medicion);
                     await _context.SaveChangesAsync();
@@ -91,14 +92,10 @@ namespace SondeoBackend.Controllers.Encuestas
                 {
                     Activa = true,
                     nombreMedicion = $"Medicion {ciudad.NombreCiudad} {mes.ToUpper()} {DateTime.Now.Year}",
-                    CiudadId = ciudadId,                    
+                    CiudadId = ciudadId,
                 };
                 _context.Mediciones.Add(medicion);
                 await _context.SaveChangesAsync();
-                var utlimaEncuesta = await _context.Encuestas.OrderByDescending(m => m.Id).FirstOrDefaultAsync();
-                var ultimoDetalle = await _context.DetalleEncuestas.OrderByDescending(m => m.Id).FirstOrDefaultAsync();
-                var idenEncu = utlimaEncuesta == null ? "0" : utlimaEncuesta.SyncId;
-                var idenDeta = ultimoDetalle == null ? "0" : ultimoDetalle.SyncId;
                 foreach (Encuesta encuesta in ultimaMedicion.Encuestas)
                 {
                     var user = await _userManager.FindByIdAsync($"{encuesta.CustomUserId}");
@@ -111,9 +108,7 @@ namespace SondeoBackend.Controllers.Encuestas
                         CustomUserId = encuesta.CustomUserId,
                         LocalId = encuesta.LocalId,
                         MedicionId = medicion.Id,
-                        SyncId = await _assignId.AssignSyncId(idenEncu, user.Email)
                     };
-                    idenEncu = encuestaNueva.SyncId;
                     _context.Encuestas.Add(encuestaNueva);
                     await _context.SaveChangesAsync();
                     foreach (DetalleEncuesta detalle in encuesta.DetalleEncuestas)
@@ -127,9 +122,7 @@ namespace SondeoBackend.Controllers.Encuestas
                             Pvp = 0,
                             ProductoId = detalle.ProductoId,
                             EncuestaId = encuestaNueva.Id,
-                            SyncId = await _assignId.AssignSyncId(idenDeta, user.Email)
                         };
-                        idenDeta = detalleNuevo.SyncId;
                         _context.DetalleEncuestas.Add(detalleNuevo);
                         await _context.SaveChangesAsync();
                     }
@@ -141,14 +134,14 @@ namespace SondeoBackend.Controllers.Encuestas
                     Object = medicion
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return BadRequest(error: new ObjectResult<Medicion>
                 {
                     Result = false,
                     Respose = $"No se pudo crear la medicion {ex.Message}"
                 });
-            }            
+            }
         }
 
         [HttpPost("CerrarMedicion/{id}")]

@@ -7,7 +7,7 @@ using SondeoBackend.Context;
 using SondeoBackend.DTO.Result;
 using SondeoBackend.DTO.UserControl;
 using SondeoBackend.Models;
-using System.IdentityModel.Tokens.Jwt;
+using System.Web.WebPages;
 
 namespace SondeoBackend.Controllers.UserManagement.Users
 {
@@ -26,7 +26,65 @@ namespace SondeoBackend.Controllers.UserManagement.Users
             _context = context;
             _userManager = userManager;
             _logger = logger;
-        }        
+        }
+
+        [HttpPost]
+        [Route("ChangeImagen")]
+        public async Task<IActionResult> ChangeImagen([FromForm] IFormFile imagen, int userId)
+        {
+            var user_exist = await _userManager.FindByIdAsync($"{userId}");
+            if(user_exist == null)
+            {
+                return BadRequest(error: new UserResult()
+                {
+                    Result = false,
+                    Respose = "No se encontro el usuario"
+                });
+            }
+            byte[] bytes = null;
+            if (imagen != null)
+            {
+                using (BinaryReader br = new BinaryReader(imagen.OpenReadStream()))
+                {
+                    bytes = br.ReadBytes((int)imagen.Length);
+                }
+                user_exist.Imagen = bytes == null ? null : bytes;
+                await _context.SaveChangesAsync();
+                return Ok(new UserResult()
+                {
+                    Result = true,
+                    Respose = "Imagen cambiada exitosamente"
+                });
+            }
+            return BadRequest(error: new UserResult()
+            {
+                Result = false,
+                Respose = "No se encontro imagen por agregar o remplazar"
+            });
+        }
+
+        [HttpPost]
+        [Route("ChangeName")]
+        public async Task<IActionResult> ChangeName(int userId, string nombre, string apellido)
+        {
+            var user_exist = await _userManager.FindByIdAsync($"{userId}");
+            if (user_exist == null)
+            {
+                return BadRequest(error: new UserResult()
+                {
+                    Result = false,
+                    Respose = "No se encontro el usuario"
+                });
+            }
+            user_exist.Name = nombre.IsEmpty() ? user_exist.Name : nombre ;
+            user_exist.Lastname = apellido.IsEmpty() ? user_exist.Lastname : apellido;
+            await _context.SaveChangesAsync();
+            return Ok(new UserResult()
+            {
+                Result = true,
+                Respose = "Datos del usuario cambiados exitosamente"
+            });
+        }
 
         [HttpPost]
         [Route("ChangePassword")]
