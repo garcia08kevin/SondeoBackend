@@ -288,7 +288,6 @@ namespace SondeoBackend.Controllers
             });
         }
         #endregion
-
         
     }
 }

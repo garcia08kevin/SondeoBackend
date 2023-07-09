@@ -58,7 +58,7 @@ namespace SondeoBackend.Controllers
         }
 
         [HttpGet("Productos/{id}")]
-        public async Task<ActionResult<Producto>> GetProducto(int id)
+        public async Task<ActionResult<Producto>> GetProducto(long id)
         {
             var producto = await _context.Productos.Include(e => e.Propiedades).Include(e => e.Marca).Include(e => e.Categoria).FirstOrDefaultAsync(i => i.BarCode == id);
             if (producto == null)
@@ -69,7 +69,7 @@ namespace SondeoBackend.Controllers
         }
 
         [HttpPut("Productos/{id}")]
-        public async Task<IActionResult> PutProducto(Producto producto, int id)
+        public async Task<IActionResult> PutProducto(Producto producto, long id)
         {
             var producto_exist = await _context.Productos.FindAsync(id);
             if (producto_exist == null)
@@ -126,16 +126,8 @@ namespace SondeoBackend.Controllers
             };
             _context.Productos.Add(productoAgregado);
             _context.Database.OpenConnection();
-            try
-            {
-                _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT Productos ON");
-                _context.SaveChanges();
-                _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT Productos OFF");
-            }
-            finally
-            {
-                _context.Database.CloseConnection();
-            }
+            _context.SaveChanges();
+            
             return Ok(new ObjectResult<Producto>()
             {
                 Result = true,
@@ -173,7 +165,7 @@ namespace SondeoBackend.Controllers
 
         [Route("Productos/ActivarProducto")]
         [HttpPost]
-        public async Task<ActionResult> ActivarProducto(int id)
+        public async Task<ActionResult> ActivarProducto(long id)
         {
             var producto = await _context.Productos.FindAsync(id);
             if (producto == null)
@@ -200,7 +192,7 @@ namespace SondeoBackend.Controllers
         }
 
         [HttpDelete("Productos/{id}")]
-        public async Task<IActionResult> DeleteProducto(int id)
+        public async Task<IActionResult> DeleteProducto(long id)
         {
             var producto = await _context.Productos.FindAsync(id);
             if (producto == null)

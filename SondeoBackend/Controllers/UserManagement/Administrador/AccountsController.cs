@@ -319,6 +319,14 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
 
         #region Manage Roles
 
+        [HttpGet]
+        [Route("GetAllRoles")]
+        public IActionResult GetAllRoles()
+        {
+            var roles = _roleManager.Roles.ToList();
+            return Ok(roles);
+        }
+
         [HttpPost]
         [Route("AddUserRole")]
         public async Task<IActionResult> AddUserRole(string email, string roleName)
