@@ -189,13 +189,13 @@ namespace SondeoBackend.Controllers
         }
 
         [HttpGet("Productos/{id}")]
-        public async Task<ActionResult<Producto>> GetProducto(int id)
+        public async Task<ActionResult<Producto>> GetProducto(long id)
         {
             return await _context.Productos.Include(e => e.Propiedades).Include(e => e.Marca).Include(e => e.Categoria).FirstOrDefaultAsync(i => i.BarCode == id);
         }
 
         [HttpPut("Productos/{id}")]
-        public async Task<IActionResult> PutProducto(int id, RegistroProducto registro)
+        public async Task<IActionResult> PutProducto(long id, RegistroProducto registro)
         {
             var producto = await _context.Productos.FindAsync(id);
             if (producto == null)
@@ -267,7 +267,7 @@ namespace SondeoBackend.Controllers
         }
 
         [HttpDelete("Productos/{id}")]
-        public async Task<IActionResult> DeleteProducto(int id)
+        public async Task<IActionResult> DeleteProducto(long id)
         {
             var producto = await _context.Productos.FindAsync(id);
             if (producto == null)

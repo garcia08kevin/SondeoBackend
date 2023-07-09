@@ -104,15 +104,23 @@ namespace SondeoBackend.Controllers
                     bytes = br.ReadBytes((int)producto.Imagen.Length);
                 }
             }
-            var comprobarExistente = await _context.Productos.Where(e => e.Nombre == producto.Nombre).Where(e => e.CategoriaId == producto.CategoriaId).Where(e => e.MarcaId == producto.MarcaId).Where(e => e.PropiedadesId == producto.PropiedadesId).FirstOrDefaultAsync();
+            var comprobarExistente = await _context.Productos.Where(e => e.Nombre == producto.Nombre).Where(e => e.CategoriaId == producto.CategoriaId).Where(e => e.MarcaId == producto.MarcaId).Where(e => e.PropiedadesId == producto.PropiedadesId).Where(e => e.BarCode == producto.BarCode).FirstOrDefaultAsync();
             if (comprobarExistente != null)
             {
-                return BadRequest(error: new ObjectResult<Producto>()
+                return Ok(new ObjectResult<Producto>()
                 {
                     Result = false,
-                    Respose = "El producto con las caracteristicas que ingresaste ya esta en el sistema"
+                    Respose = "El producto con las caracteristicas ingresadas ya esta en el sistema"
                 });
             };
+            if(producto.BarCode == null)
+            {
+                return Ok(new ObjectResult<Producto>()
+                {
+                    Result = false,
+                    Respose = "Ingrese porfavor un codigo de barra"
+                });
+            }
             var lastProduct = await _context.Productos.OrderByDescending(producto => producto.BarCode).FirstOrDefaultAsync();
             var productoAgregado = new Producto
             {
@@ -138,7 +146,7 @@ namespace SondeoBackend.Controllers
 
         [Route("Productos/CambiarImagen")]
         [HttpPost]
-        public async Task<ActionResult<Producto>> CambiarImagen([FromForm] int id, IFormFile Imagen)
+        public async Task<ActionResult<Producto>> CambiarImagen([FromForm] long id, IFormFile Imagen)
         {
             var producto_exist = await _context.Productos.FindAsync(id);
             if (producto_exist == null)

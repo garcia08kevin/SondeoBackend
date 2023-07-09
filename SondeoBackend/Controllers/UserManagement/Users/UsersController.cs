@@ -35,11 +35,7 @@ namespace SondeoBackend.Controllers.UserManagement.Users
             var user_exist = await _userManager.FindByIdAsync($"{userId}");
             if(user_exist == null)
             {
-                return BadRequest(error: new UserResult()
-                {
-                    Result = false,
-                    Respose = "No se encontro el usuario"
-                });
+                return Ok(new UserResult() { Result = false, Respose = "No se encontro el usuario" });
             }
             byte[] bytes = null;
             if (imagen != null)
@@ -56,11 +52,7 @@ namespace SondeoBackend.Controllers.UserManagement.Users
                     Respose = "Imagen cambiada exitosamente"
                 });
             }
-            return BadRequest(error: new UserResult()
-            {
-                Result = false,
-                Respose = "No se encontro imagen por agregar o remplazar"
-            });
+            return Ok(new UserResult() { Result = false, Respose = "No se encontro imagen por agregar o remplazar" });
         }
 
         [HttpPost]
@@ -70,11 +62,7 @@ namespace SondeoBackend.Controllers.UserManagement.Users
             var user_exist = await _userManager.FindByIdAsync($"{userId}");
             if (user_exist == null)
             {
-                return BadRequest(error: new UserResult()
-                {
-                    Result = false,
-                    Respose = "No se encontro el usuario"
-                });
+                return Ok(new UserResult() { Result = false, Respose = "No se encontro el usuario" });
             }
             user_exist.Name = nombre.IsEmpty() ? user_exist.Name : nombre ;
             user_exist.Lastname = apellido.IsEmpty() ? user_exist.Lastname : apellido;
@@ -95,20 +83,12 @@ namespace SondeoBackend.Controllers.UserManagement.Users
                 var user_exist = await _userManager.FindByEmailAsync(verification.Email);
                 if (user_exist == null)
                 {
-                    return BadRequest(error: new UserResult()
-                    {
-                        Result = false,
-                        Respose = "El usuario no esta registrado"
-                    });
+                    return Ok(new UserResult() { Result = false, Respose = "El usuario no esta registrado" });
                 }
                 var isCorrect = await _userManager.CheckPasswordAsync(user_exist, verification.OldPassword);
                 if (!isCorrect)
                 {
-                    return BadRequest(error: new UserResult()
-                    {
-                        Result = false,
-                        Respose = "Clave de usuario es incorrecta"
-                    });
+                    return Ok(new UserResult() { Result = false, Respose = "Clave de usuario es incorrecta" });
                 }
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user_exist);
                 var result = await _userManager.ResetPasswordAsync(user_exist, token, verification.Password);

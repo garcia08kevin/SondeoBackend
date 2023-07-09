@@ -41,7 +41,7 @@ namespace SondeoBackend.Controllers.UserManagement.Users
                 var user_exist = await _userManager.FindByEmailAsync(login.Email);
                 if (user_exist == null)
                 {
-                    return BadRequest(error: new UserResult()
+                    return Ok( new UserResult()
                     {
                         Result = false,
                         Respose = "Usuario No registrado"
@@ -50,27 +50,15 @@ namespace SondeoBackend.Controllers.UserManagement.Users
                 var isCorrect = await _userManager.CheckPasswordAsync(user_exist, login.Password);
                 if (!isCorrect)
                 {
-                    return BadRequest(error: new UserResult()
-                    {
-                        Result = false,
-                        Respose = "Clave de Usuario Incorrecta"
-                    });
+                    return Ok(new UserResult() { Result = false, Respose = "Clave de Usuario Incorrecta" });
                 }
                 if (!user_exist.EmailConfirmed)
                 {
-                    return BadRequest(error: new UserResult()
-                    {
-                        Result = false,
-                        Respose = "FirstLogin"
-                    });
+                    return Ok(new UserResult() { Result = false, Respose = "FirstLogin" });
                 }
                 if (!user_exist.CuentaActiva)
                 {
-                    return BadRequest(error: new UserResult()
-                    {
-                        Result = false,
-                        Respose = "Tu usuario ha sido bloqueado"
-                    });
+                    return Ok(new UserResult() { Result = false, Respose = "Tu usuario ha sido bloqueado" });
                 }
                 var jwtToken = await GenerateToken(user_exist);
                 var handler = new JwtSecurityTokenHandler();
