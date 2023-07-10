@@ -11,15 +11,6 @@ using SondeoBackend.DTO.Registros;
 using SondeoBackend.DTO.Result;
 using SondeoBackend.Models;
 using System.Data;
-using System.Drawing;
-using System.Web.WebPages;
-using System;
-using BarcodeLib;
-using System.Drawing.Imaging;
-using System.IO;
-using ZXing.Common;
-using ZXing.Windows.Compatibility;
-using ZXing;
 
 namespace SondeoBackend.Controllers
 {
@@ -248,22 +239,41 @@ namespace SondeoBackend.Controllers
         [HttpPut("Marcas/{id}")]
         public async Task<IActionResult> PutMarca(int id, Marca marca)
         {
-            if (marca.Id != id)
+            try
             {
-                return BadRequest(error: new ObjectResult<Marca>()
+                if (marca.Id != id)
                 {
-                    Result = false,
-                    Respose = "El elemento no coincide"
+                    return BadRequest(error: new ObjectResult<Marca>()
+                    {
+                        Result = false,
+                        Respose = "El elemento no coincide"
+                    });
+                }
+                if (id == 1)
+                {
+                    return Ok(new ObjectResult<Propiedades>()
+                    {
+                        Result = false,
+                        Respose = "No puedes eliminar este elemento"
+                    });
+                }
+                _context.Entry(marca).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                return Ok(new ObjectResult<Marca>()
+                {
+                    Result = true,
+                    Respose = "Elemento modificado correctamente"
                 });
             }
-            _context.Entry(marca).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return Ok(new ObjectResult<Marca>()
+            catch (Exception ex)
             {
-                Result = true,
-                Respose = "Elemento modificado correctamente"
-            });
+                return BadRequest(error: new ObjectResult<Propiedades>()
+                {
+                    Result = false,
+                    Respose = $"Se ha producido un error {ex.Message}"
+                });
+            }            
         }
 
         [Route("Marcas")]
@@ -282,22 +292,50 @@ namespace SondeoBackend.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(error: new ObjectResult<Marca>() { Result = false, Respose = $"No puedes agregar el elemento {ex.Message}" });
+                return BadRequest(error: new ObjectResult<Marca>() { Result = false, Respose = $"Se ha producido un error {ex.Message}" });
             }
         }
 
         [HttpDelete("Marcas/{id}")]
         public async Task<IActionResult> DeleteMarca(int id)
         {
-            var marca = await _context.Marcas.FindAsync(id);
-            if (marca == null)
+            try
             {
-                return BadRequest(error: new ObjectResult<Marca>() { Result = false, Respose = "No se ha encontrado el elemento" });
-            }
-            _context.Marcas.Remove(marca);
-            await _context.SaveChangesAsync();
+                var marca = await _context.Marcas.FindAsync(id);
+                if (marca == null)
+                {
+                    return BadRequest(error: new ObjectResult<Marca>() { Result = false, Respose = "No se ha encontrado el elemento" });
+                }
+                if (id == 1)
+                {
+                    return Ok(new ObjectResult<Propiedades>()
+                    {
+                        Result = false,
+                        Respose = "No puedes eliminar este elemento"
+                    });
+                }
+                var verificacion = await _context.Productos.Where(e => e.MarcaId == id).FirstAsync();
+                if (verificacion != null)
+                {
+                    return Ok(new ObjectResult<Propiedades>()
+                    {
+                        Result = false,
+                        Respose = "Este elemento esta asignado a uno o mas productos"
+                    });
+                }
+                _context.Marcas.Remove(marca);
+                await _context.SaveChangesAsync();
 
-            return Ok(new ObjectResult<Marca>() { Result = true, Respose = "Elemento eliminado correctamente" });
+                return Ok(new ObjectResult<Marca>() { Result = true, Respose = "Elemento eliminado correctamente" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(error: new ObjectResult<Propiedades>()
+                {
+                    Result = false,
+                    Respose = $"Se ha producido un error {ex.Message}"
+                });
+            }
         }
         #endregion
 
@@ -327,22 +365,41 @@ namespace SondeoBackend.Controllers
         [HttpPut("Propiedades/{id}")]
         public async Task<IActionResult> PutPropiedades(int id, Propiedades propiedades)
         {
-            if (propiedades.Id != id)
+            try
             {
-                return BadRequest(error: new ObjectResult<Propiedades>()
+                if (propiedades.Id != id)
                 {
-                    Result = false,
-                    Respose = "El elemento no coincide"
+                    return Ok(new ObjectResult<Propiedades>()
+                    {
+                        Result = false,
+                        Respose = "El elemento no coincide"
+                    });
+                }
+                if (id == 1)
+                {
+                    return Ok(new ObjectResult<Propiedades>()
+                    {
+                        Result = false,
+                        Respose = "No puedes eliminar este elemento"
+                    });
+                }
+                _context.Entry(propiedades).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                return Ok(new ObjectResult<Propiedades>()
+                {
+                    Result = true,
+                    Respose = "Elemento modificado correctamente"
                 });
             }
-            _context.Entry(propiedades).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return Ok(new ObjectResult<Propiedades>()
+            catch(Exception ex)
             {
-                Result = true,
-                Respose = "Elemento modificado correctamente"
-            });
+                return BadRequest(error: new ObjectResult<Producto>()
+                {
+                    Result = false,
+                    Respose = $"Se ha producido un error {ex.Message}"
+                });
+            }
         }
 
         [Route("Propiedades")]
@@ -373,7 +430,7 @@ namespace SondeoBackend.Controllers
                 return BadRequest(error: new ObjectResult<Propiedades>()
                 {
                     Result = false,
-                    Respose = $"No se pudo agregar el elemento {ex.Message}"
+                    Respose = $"Se ha producido un error {ex.Message}"
                 });
             }
 
@@ -382,23 +439,51 @@ namespace SondeoBackend.Controllers
         [HttpDelete("Propiedades/{id}")]
         public async Task<IActionResult> DeletePropiedades(int id)
         {
-            var propiedades = await _context.Propiedades.FindAsync(id);
-            if (propiedades == null)
+            try
+            {
+                var propiedades = await _context.Propiedades.FindAsync(id);
+                if (propiedades == null)
+                {
+                    return BadRequest(error: new ObjectResult<Propiedades>()
+                    {
+                        Result = false,
+                        Respose = "No se ha encontrado el elemento"
+                    });
+                }
+                if (id == 1)
+                {
+                    return Ok(new ObjectResult<Propiedades>()
+                    {
+                        Result = false,
+                        Respose = "No puedes eliminar este elemento"
+                    });
+                }
+                var verificacion = await _context.Productos.Where(e => e.PropiedadesId == id).FirstAsync();
+                if (verificacion != null)
+                {
+                    return Ok(new ObjectResult<Propiedades>()
+                    {
+                        Result = false,
+                        Respose = "Este elemento esta asignado a uno o mas productos"
+                    });
+                }
+                _context.Propiedades.Remove(propiedades);
+                await _context.SaveChangesAsync();
+
+                return Ok(new ObjectResult<Propiedades>()
+                {
+                    Result = true,
+                    Respose = "Elemento eliminado correctamente"
+                });
+            }
+            catch (Exception ex)
             {
                 return BadRequest(error: new ObjectResult<Propiedades>()
                 {
                     Result = false,
-                    Respose = "No se ha encontrado el elemento"
+                    Respose = $"Se ha producido un error {ex.Message}"
                 });
-            }
-            _context.Propiedades.Remove(propiedades);
-            await _context.SaveChangesAsync();
-
-            return Ok(new ObjectResult<Propiedades>()
-            {
-                Result = true,
-                Respose = "Elemento eliminado correctamente"
-            });
+            }            
         }
         #endregion
 
@@ -487,10 +572,6 @@ namespace SondeoBackend.Controllers
         [HttpDelete("Categorias/{id}")]
         public async Task<IActionResult> DeleteCategoria(int id)
         {
-            if (_context.Marcas == null)
-            {
-                return NotFound();
-            }
             var categoria = await _context.Categorias.FindAsync(id);
             if (id == 1)
             {
@@ -498,6 +579,15 @@ namespace SondeoBackend.Controllers
                 {
                     Result = false,
                     Respose = "No puedes eliminar este elemento"
+                });
+            }
+            var verificacion = await _context.Productos.Where(e => e.MarcaId == id).FirstAsync();
+            if (verificacion != null)
+            {
+                return Ok(new ObjectResult<Propiedades>()
+                {
+                    Result = false,
+                    Respose = "Este elemento esta asignado a uno o mas productos"
                 });
             }
             if (categoria == null)
@@ -508,7 +598,6 @@ namespace SondeoBackend.Controllers
                     Respose = "No se ha encontrado elemento"
                 });
             }
-
             _context.Categorias.Remove(categoria);
             await _context.SaveChangesAsync();
 

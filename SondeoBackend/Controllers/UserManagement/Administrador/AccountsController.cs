@@ -14,7 +14,7 @@ using SondeoBackend.Models;
 
 namespace SondeoBackend.Controllers.UserManagement.Administrador
 {
-    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
     [Route("api/[controller]")]
     [ApiController]
     public class AccountsController : ControllerBase
