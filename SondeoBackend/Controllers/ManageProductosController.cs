@@ -458,8 +458,8 @@ namespace SondeoBackend.Controllers
                         Respose = "No puedes eliminar este elemento"
                     });
                 }
-                var verificacion = await _context.Productos.Where(e => e.PropiedadesId == id).FirstAsync();
-                if (verificacion != null)
+                var verificacion = await _context.Productos.Where(e => e.PropiedadesId == id).ToListAsync();
+                if (verificacion.Count != 0)
                 {
                     return Ok(new ObjectResult<Propiedades>()
                     {

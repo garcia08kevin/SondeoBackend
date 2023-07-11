@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using NLog.Web;
 using SondeoBackend.Configuration;
 using SondeoBackend.Context;
+using SondeoBackend.Controllers;
 using SondeoBackend.Models;
 using System.Text;
 using System.Text.Json;
@@ -106,6 +107,8 @@ var options = new JsonSerializerOptions
 };
 
 builder.Services.AddTransient<AssignId>();
+
+builder.Services.AddTransient<ManageProductosController>();
 
 builder.Services.AddMvc().AddControllersAsServices().AddNewtonsoftJson(options =>
     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore

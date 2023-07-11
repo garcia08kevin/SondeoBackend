@@ -23,10 +23,14 @@ namespace SondeoBackend.Controllers
         private readonly IHubContext<Hubs> _hubs;
         private readonly UserManager<CustomUser> _userManager;
         private readonly AssignId _assignId;
+        private readonly ManageProductosController _manageProductos;
+        private readonly ManageLocalesController _manageLocales;
 
-        public SincronizacionController(DataContext context, IHubContext<Hubs> hubs, UserManager<CustomUser> userManager, AssignId assignId)
+        public SincronizacionController(DataContext context, ManageLocalesController manageLocales, ManageProductosController manageProductos, IHubContext<Hubs> hubs, UserManager<CustomUser> userManager, AssignId assignId)
         {
             _userManager = userManager;
+            _manageProductos = manageProductos;
+            _manageLocales = manageLocales;
             _hubs = hubs;
             _context = context;
             _assignId = assignId;
@@ -44,6 +48,13 @@ namespace SondeoBackend.Controllers
         }
 
         #region Sincronizar Encuesta
+        [Route("Encuestas/{userId}")]
+        [HttpGet]
+        public async Task<ActionResult<Encuesta>> GetEncuestas(int userId)
+        {
+            return await _context.Encuestas.Include(e => e.Medicion).Include(e => e.DetalleEncuestas).ThenInclude(e => e.Producto).Where(e=> e.Medicion.Activa).FirstOrDefaultAsync(m => m.CustomUserId == userId);
+        }
+
         [Route("CrearEncuesta")]
         [HttpPost]
         public async Task<IActionResult> CrearEncuesta(RegistroEncuesta registro)
@@ -188,32 +199,44 @@ namespace SondeoBackend.Controllers
             return await _context.Productos.Where(e => e.Activado == true).Include(e => e.Marca).Include(e => e.Categoria).Include(e => e.Propiedades).ToListAsync();
         }
 
+        [Route("Categorias")]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Categoria>>> SyncCategorias()
+        {
+            return await _manageProductos.GetCategorias();
+        }
+
+        [Route("Marcas")]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Marca>>> SyncMarcas()
+        {
+            return await _manageProductos.GetMarcas();
+        }
+
+        [Route("Categorias")]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Propiedades>>> SyncPropiedades()
+        {
+            return await _manageProductos.GetPropiedades();
+        }
+
+        [Route("Canal")]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Canal>>> SyncCanales()
+        {
+            return await _manageLocales.GetCanales();
+        }
+
         [HttpGet("Productos/{id}")]
         public async Task<ActionResult<Producto>> GetProducto(long id)
         {
-            return await _context.Productos.Include(e => e.Propiedades).Include(e => e.Marca).Include(e => e.Categoria).FirstOrDefaultAsync(i => i.BarCode == id);
+            return await _manageProductos.GetProducto(id);
         }
 
         [HttpPut("Productos/{id}")]
-        public async Task<IActionResult> PutProducto(long id, RegistroProducto registro)
+        public async Task<IActionResult> PutProducto(long id, Producto registro)
         {
-            var producto = await _context.Productos.FindAsync(id);
-            if (producto == null)
-            {
-                return BadRequest(error: new ObjectResult<Producto>()
-                {
-                    Result = false,
-                    Respose = "El producto no existe"
-                });
-            }
-            _context.Entry(producto).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-            return Ok(new ObjectResult<Producto>()
-            {
-                Result = true,
-                Respose = "Producto modificado correctamente",
-                Object = producto
-            });
+            return await _manageProductos.PutProducto(registro ,id);
         }
 
         [Route("Productos")]
@@ -269,23 +292,7 @@ namespace SondeoBackend.Controllers
         [HttpDelete("Productos/{id}")]
         public async Task<IActionResult> DeleteProducto(long id)
         {
-            var producto = await _context.Productos.FindAsync(id);
-            if (producto == null)
-            {
-                return BadRequest(error: new ObjectResult<Producto>()
-                {
-                    Result = false,
-                    Respose = "No se encontro el producto"
-                });
-            }
-            _context.Productos.Remove(producto);
-            await _context.SaveChangesAsync();
-
-            return Ok(new ObjectResult<Producto>()
-            {
-                Result = true,
-                Respose = "Producto eliminado correctamente"
-            });
+            return await _manageProductos.DeleteProducto(id);
         }
         #endregion
         
