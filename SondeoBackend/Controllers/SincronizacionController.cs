@@ -213,7 +213,7 @@ namespace SondeoBackend.Controllers
             return await _manageProductos.GetMarcas();
         }
 
-        [Route("Categorias")]
+        [Route("Propiedades")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Propiedades>>> SyncPropiedades()
         {
