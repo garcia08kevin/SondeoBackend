@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Identity;
 using SondeoBackend.DTO.Result;
 using SondeoBackend.DTO.Registros;
+using SondeoBackend.DTO;
+using SondeoBackend.DTO.Sincronizacion;
 
 namespace SondeoBackend.Controllers
 {
@@ -36,23 +38,19 @@ namespace SondeoBackend.Controllers
             _assignId = assignId;
         }
 
-        [HttpGet("Medicion/{id}")]
-        public async Task<ActionResult<Medicion>> GetMedicion(int id)
+        [HttpGet("Mediciones")]
+        public async Task<ActionResult<IEnumerable<Medicion>>> GetMedicion()
         {
-            var medicion = await _context.Mediciones.Include(e => e.Encuestas).FirstOrDefaultAsync(i => i.Id == id);
-            return Ok(new ObjectResult<Medicion>
-            {
-                Result = true,
-                Object = medicion
-            });
+            return await _context.Mediciones.Where(e=>e.Activa).ToListAsync();
+
         }
 
         #region Sincronizar Encuesta
-        [Route("Encuestas/idUsuario={userId}/idMedicion={medicionId}")]
-        [HttpGet]
-        public async Task<ActionResult<Encuesta>> GetEncuestas(int userId, int medicionId)
+        [Route("Encuestas")]
+        [HttpPost]
+        public async Task<ActionResult<Encuesta>> GetEncuestas(Peticion sincronizacion)
         {
-            return await _context.Encuestas.Include(e => e.Medicion).Include(e => e.DetalleEncuestas).Where(e=> e.Medicion.Activa && e.MedicionId == medicionId).FirstOrDefaultAsync(m => m.CustomUserId == userId);
+            return await _context.Encuestas.Include(e => e.DetalleEncuestas).FirstOrDefaultAsync(m => m.CustomUserId == sincronizacion.UsuarioId);
         }
 
         [Route("CrearEncuesta")]
@@ -194,9 +192,49 @@ namespace SondeoBackend.Controllers
         #region Productos
         [Route("Productos")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Producto>>> GetProductos()
+        public async Task<ActionResult<IEnumerable<ProductoDto>>> GetProductos()
         {
-            return await _context.Productos.Where(e => e.Activado == true).ToListAsync();
+            return await _context.Productos.Select(p => new ProductoDto
+            {
+                BarCode = p.BarCode,
+                Nombre = p.Nombre,
+                Activado = p.Activado,
+                CategoriaId = p.CategoriaId,
+                MarcaId = p.MarcaId,
+                PropiedadesId = p.PropiedadesId
+            }).ToListAsync();
+         }
+
+        [Route("Ciudades")]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Ciudad>>> GetCiudades()
+        {
+            return await _manageLocales.GetCiudad();
+        }
+
+        [Route("Locales")]
+        [HttpPost]
+        public async Task<ActionResult<Local>> PostProducto(List<EnviarLocalesDto> enviarLocales)
+        {
+            foreach(EnviarLocalesDto local in enviarLocales)
+            {
+                var create = new Local
+                {
+                    Nombre = local.Nombre,
+                    Direccion = local.Direccion,
+                    Latitud = local.Latitud,
+                    Longitud = local.Longitud,
+                    CanalId = local.CanalId,
+                    CiudadId = local.CiudadId,
+                    Habilitado = local.Habilitado
+                };
+                await _manageLocales.PostLocal(create);
+            }
+            return Ok(new ObjectResult<Producto>()
+            {
+                Result = true,
+                Respose = "Productos creados correctamente"
+            });
         }
 
         [Route("Categorias")]

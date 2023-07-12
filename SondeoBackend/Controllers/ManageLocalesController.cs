@@ -300,7 +300,7 @@ namespace SondeoBackend.Controllers
             return Ok(new ObjectResult<Ciudad>()
             {
                 Result = true,
-                Respose = "Ciudad Eliminad"
+                Respose = "Ciudad Eliminado"
             });
         }
         #endregion
