@@ -52,7 +52,7 @@ namespace SondeoBackend.Controllers
         [HttpGet]
         public async Task<ActionResult<Encuesta>> GetEncuestas(int userId)
         {
-            return await _context.Encuestas.Include(e => e.Medicion).Include(e => e.DetalleEncuestas).ThenInclude(e => e.Producto).Where(e=> e.Medicion.Activa).FirstOrDefaultAsync(m => m.CustomUserId == userId);
+            return await _context.Encuestas.Include(e => e.Medicion).Include(e => e.DetalleEncuestas).Where(e=> e.Medicion.Activa).FirstOrDefaultAsync(m => m.CustomUserId == userId);
         }
 
         [Route("CrearEncuesta")]
