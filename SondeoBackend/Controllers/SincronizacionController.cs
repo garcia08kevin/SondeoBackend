@@ -48,11 +48,11 @@ namespace SondeoBackend.Controllers
         }
 
         #region Sincronizar Encuesta
-        [Route("Encuestas/{userId}")]
+        [Route("Encuestas/idUsuario={userId}/idMedicion={medicionId}")]
         [HttpGet]
-        public async Task<ActionResult<Encuesta>> GetEncuestas(int userId)
+        public async Task<ActionResult<Encuesta>> GetEncuestas(int userId, int medicionId)
         {
-            return await _context.Encuestas.Include(e => e.Medicion).Include(e => e.DetalleEncuestas).Where(e=> e.Medicion.Activa).FirstOrDefaultAsync(m => m.CustomUserId == userId);
+            return await _context.Encuestas.Include(e => e.Medicion).Include(e => e.DetalleEncuestas).Where(e=> e.Medicion.Activa && e.MedicionId == medicionId).FirstOrDefaultAsync(m => m.CustomUserId == userId);
         }
 
         [Route("CrearEncuesta")]
