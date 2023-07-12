@@ -196,7 +196,7 @@ namespace SondeoBackend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Producto>>> GetProductos()
         {
-            return await _context.Productos.Where(e => e.Activado == true).Include(e => e.Marca).Include(e => e.Categoria).Include(e => e.Propiedades).ToListAsync();
+            return await _context.Productos.Where(e => e.Activado == true).ToListAsync();
         }
 
         [Route("Categorias")]
@@ -241,18 +241,10 @@ namespace SondeoBackend.Controllers
 
         [Route("Productos")]
         [HttpPost]
-        public async Task<ActionResult<Producto>> PostProducto([FromForm] RegistroProducto registro)
+        public async Task<ActionResult<Producto>> PostProducto(Producto registro)
         {
             try
             {
-                byte[] bytes = null;
-                if (registro.Imagen != null)
-                {
-                    using (BinaryReader br = new BinaryReader(registro.Imagen.OpenReadStream()))
-                    {
-                        bytes = br.ReadBytes((int)registro.Imagen.Length);
-                    }
-                }
                 var productoConfirmacion = await _context.Productos.Where(p => p.Nombre.Equals(registro.Nombre)).FirstOrDefaultAsync();
                 if (productoConfirmacion != null)
                 {
@@ -262,16 +254,7 @@ namespace SondeoBackend.Controllers
                         Respose = "Ya hay un producto con el mismo nombre"
                     });
                 }
-                var producto = new Producto()
-                {
-                    Nombre = registro.Nombre,
-                    Imagen = bytes == null ? null : bytes,
-                    CategoriaId = registro.CategoriaId,
-                    MarcaId = registro.MarcaId,
-                    PropiedadesId = registro.PropiedadesId,
-                    Activado = false,
-                };
-                _context.Productos.Add(producto);
+                _context.Productos.Add(registro);
                 await _context.SaveChangesAsync();
                 return Ok(new ObjectResult<Producto>()
                 {
