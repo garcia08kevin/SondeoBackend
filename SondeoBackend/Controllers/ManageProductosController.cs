@@ -282,6 +282,15 @@ namespace SondeoBackend.Controllers
         {
             try
             {
+                var verificacion = await _context.Marcas.FirstOrDefaultAsync(e => e.NombreMarca.Equals(marca.NombreMarca));
+                if (verificacion != null)
+                {
+                    return BadRequest(error: new ObjectResult<Producto>()
+                    {
+                        Result = false,
+                        Respose = "Ya hay un marca con el mismo nombre"
+                    });
+                }
                 _context.Marcas.Add(marca);
                 await _context.SaveChangesAsync();
                 return Ok(new ObjectResult<Marca>()
@@ -314,8 +323,8 @@ namespace SondeoBackend.Controllers
                         Respose = "No puedes eliminar este elemento"
                     });
                 }
-                var verificacion = await _context.Productos.Where(e => e.MarcaId == id).FirstAsync();
-                if (verificacion != null)
+                var verificacion = await _context.Productos.Where(e => e.MarcaId == id).ToListAsync();
+                if (verificacion.Count > 0)
                 {
                     return Ok(new ObjectResult<Propiedades>()
                     {
@@ -415,7 +424,7 @@ namespace SondeoBackend.Controllers
                     return BadRequest(error: new ObjectResult<Producto>()
                     {
                         Result = false,
-                        Respose = "Ya hay un propiedad con el mismo nombre"
+                        Respose = "Ya hay una propiedad con el mismo nombre"
                     });
                 }
                 await _context.SaveChangesAsync();
@@ -459,7 +468,7 @@ namespace SondeoBackend.Controllers
                     });
                 }
                 var verificacion = await _context.Productos.Where(e => e.PropiedadesId == id).ToListAsync();
-                if (verificacion.Count != 0)
+                if (verificacion.Count > 0)
                 {
                     return Ok(new ObjectResult<Propiedades>()
                     {
@@ -551,6 +560,15 @@ namespace SondeoBackend.Controllers
         {
             try
             {
+                var verificacion = await _context.Categorias.FirstOrDefaultAsync(e => e.NombreCategoria.Equals(categoria.NombreCategoria));
+                if(verificacion != null)
+                {
+                    return BadRequest(error: new ObjectResult<Producto>()
+                    {
+                        Result = false,
+                        Respose = "Ya hay un categoria con el mismo nombre"
+                    });
+                }
                 _context.Categorias.Add(categoria);
                 await _context.SaveChangesAsync();
                 return Ok(new ObjectResult<Categoria>()
@@ -580,9 +598,9 @@ namespace SondeoBackend.Controllers
                     Result = false,
                     Respose = "No puedes eliminar este elemento"
                 });
-            }
-            var verificacion = await _context.Productos.Where(e => e.MarcaId == id).FirstAsync();
-            if (verificacion != null)
+            }            
+            var verificacion = await _context.Productos.Where(e => e.MarcaId == id).ToListAsync();
+            if (verificacion.Count > 0)
             {
                 return Ok(new ObjectResult<Propiedades>()
                 {
