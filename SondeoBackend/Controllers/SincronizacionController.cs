@@ -14,6 +14,9 @@ using SondeoBackend.DTO.Result;
 using SondeoBackend.DTO.Registros;
 using SondeoBackend.DTO;
 using SondeoBackend.DTO.Sincronizacion;
+using static SondeoBackend.DTO.Sincronizacion.EnviarDatos;
+using System.Text;
+using System.Web.WebPages;
 
 namespace SondeoBackend.Controllers
 {
@@ -36,22 +39,9 @@ namespace SondeoBackend.Controllers
             _hubs = hubs;
             _context = context;
             _assignId = assignId;
-        }
+        }        
 
-        [HttpGet("Mediciones")]
-        public async Task<ActionResult<IEnumerable<Medicion>>> GetMedicion()
-        {
-            return await _context.Mediciones.Where(e=>e.Activa).ToListAsync();
-
-        }
-
-        #region Sincronizar Encuesta
-        [Route("Encuestas")]
-        [HttpPost]
-        public async Task<ActionResult<Encuesta>> GetEncuestas(Peticion sincronizacion)
-        {
-            return await _context.Encuestas.Include(e => e.DetalleEncuestas).FirstOrDefaultAsync(m => m.CustomUserId == sincronizacion.UsuarioId);
-        }
+        #region Sincronizar Encuesta        
 
         [Route("CrearEncuesta")]
         [HttpPost]
@@ -87,7 +77,7 @@ namespace SondeoBackend.Controllers
             }
             var encuesta = new Encuesta
             {
-                FechaInicio = DateTime.Now,
+                FechaInicio = registro.FechaInicio,
                 FechaCierre = null,
                 DiasTrabajados = 0,
                 CustomUserId = registro.UserId,
@@ -161,10 +151,11 @@ namespace SondeoBackend.Controllers
                     cont++;
                 }
             }
+            var fechaActual = DateOnly.FromDateTime(DateTime.Now);
             if (cont == 0)
             {
-                encuesta.FechaCierre = DateTime.Now;
-                encuesta.DiasTrabajados = (DateTime.Now - encuesta.FechaInicio).Value.Days;
+                encuesta.FechaCierre = fechaActual;
+                encuesta.DiasTrabajados = fechaActual.DayNumber - encuesta.FechaInicio.Value.DayNumber;
                 await _context.SaveChangesAsync();
             }
             return Ok(new ObjectResult<DetalleEncuesta>
@@ -189,12 +180,184 @@ namespace SondeoBackend.Controllers
         }
         #endregion
 
-        #region Productos
+        #region Sincronizar Datos
+        [Route("SendSync")]
+        [HttpPost]
+        public async Task<ActionResult<Local>> SendSync(SendSyncDto data)
+        {
+            try
+            {
+                await PostLocales(data.Locales);
+                await PostEncuestas(data.Encuestas);
+                await PostProducto(data.Productos);
+                await PostDetalleEncuesta(data.DetalleEncuestas);
+                return Ok(new ObjectResult<SendSyncDto>()
+                {
+                    Result = true,
+                    Respose = "Soncronizacion realizada correctamente"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(error: new ObjectResult<Local>()
+                {
+                    Result = false,
+                    Respose = $"No se pudo agregar el local {ex.Message}"
+                });
+            }
+        }
+
+        [Route("Productos")]
+        [HttpPost]
+        public async Task<ActionResult<Local>> PostProducto(List<ProductoDto> enviarProducto)
+        {
+            foreach (ProductoDto producto in enviarProducto)
+            {
+                var propiedad = new Propiedades
+                {
+                    NombrePropiedades = producto.NombrePropiedad
+                };
+                var propiedadConfirmacion = await _context.Propiedades.Where(p => p.NombrePropiedades.Equals(producto.NombrePropiedad)).FirstOrDefaultAsync();
+                if (propiedadConfirmacion == null)
+                {
+                    _context.Propiedades.Add(propiedad);
+                    await _context.SaveChangesAsync();
+                }                
+                var comprobarExistente = await _context.Productos.Where(e => e.CategoriaId == producto.Id_categoria && e.PropiedadesId == (propiedadConfirmacion == null ? propiedad.Id : propiedadConfirmacion.Id) && e.MarcaId == producto.Id_marca).FirstOrDefaultAsync();
+                if (comprobarExistente != null)
+                {
+                    return Ok(new ObjectResult<Producto>()
+                    {
+                        Result = false,
+                        Respose = "El producto con las caracteristicas ingresadas ya esta en el sistema"
+                    });
+                };
+                var comprobarCodigo = await _context.Productos.FirstOrDefaultAsync(e => e.BarCode == producto.Id);
+                if (comprobarCodigo != null)
+                {
+                    return Ok(new ObjectResult<Producto>()
+                    {
+                        Result = false,
+                        Respose = "Este codigo de barra ya esta en uso"
+                    });
+                };
+                var create = new Producto
+                {
+                    BarCode = producto.Id,
+                    CategoriaId = producto.Id_categoria,
+                    MarcaId = producto.Id_marca,
+                    PropiedadesId = propiedadConfirmacion == null ? propiedad.Id : propiedadConfirmacion.Id,
+                    Imagen = producto.Foto.IsEmpty() || producto.Foto.Equals("") ? null : Encoding.ASCII.GetBytes(producto.Foto)
+
+                };
+                _context.Productos.Add(create);
+                await _context.SaveChangesAsync();
+            }
+            return Ok(new ObjectResult<Producto>()
+            {
+                Result = true,
+                Respose = "Productos sincronizadas correctamente"
+            });
+        }
+
+        [Route("Locales")]
+        [HttpPost]
+        public async Task<ActionResult<Local>> PostLocales(List<EnviarLocalesDto> enviarLocales)
+        {
+            foreach (EnviarLocalesDto local in enviarLocales)
+            {
+                var create = new Local
+                {
+                    Nombre = local.Nombre,
+                    Direccion = local.Direccion,
+                    Latitud = local.Latitud,
+                    Longitud = local.Longitud,
+                    CanalId = local.Id_canal,
+                    CiudadId = local.CiudadId,
+                    Habilitado = local.Habilitado
+                };
+                await _manageLocales.PostLocal(create);
+                await _context.SaveChangesAsync();
+            }
+            return Ok(new ObjectResult<Producto>()
+            {
+                Result = true,
+                Respose = "Locales sincronizados correctamente"
+            });
+        }
+
+        [Route("Encuestas")]
+        [HttpPost]
+        public async Task<ActionResult<Encuesta>> PostEncuestas(List<EnviarEncuestasDto> enviarEncuesta)
+        {
+            foreach (EnviarEncuestasDto encuesta in enviarEncuesta)
+            {
+                var create = new Encuesta
+                {
+                    CustomUserId = encuesta.Id_encuestador,
+                    LocalId = encuesta.Id_local,
+                    MedicionId = encuesta.Id_medicion,
+                    FechaInicio = encuesta.Fecha_init,
+                    FechaCierre = encuesta.Fecha_cierre,
+                    DiasTrabajados = encuesta.Dias_trabajados,
+                    Visita = encuesta.Visita
+                };
+                _context.Encuestas.Add(create);
+                await _context.SaveChangesAsync();
+            }
+            return Ok(new ObjectResult<Encuesta>()
+            {
+                Result = true,
+                Respose = "Encuestas sincronizadas correctamente"
+            });
+        }
+
+        [Route("DetalleEncuesta")]
+        [HttpPost]
+        public async Task<ActionResult<Local>> PostDetalleEncuesta(List<DetalleEncuestaDto> enviarDetalleEncuesta)
+        {
+            foreach (DetalleEncuestaDto detalleEncuesta in enviarDetalleEncuesta)
+            {
+                var create = new DetalleEncuesta
+                {
+                    EncuestaId = detalleEncuesta.Id_encuesta,
+                    ProductoId = detalleEncuesta.Id_producto,
+                    StockInicial = detalleEncuesta.Stock_init,
+                    StockFinal = detalleEncuesta.Stock_fin,
+                    Compra = detalleEncuesta.Compra,
+                    Pvd = detalleEncuesta.Pvd,
+                    Pvp = detalleEncuesta.Pvp
+                };
+                _context.DetalleEncuestas.Add(create);
+                await _context.SaveChangesAsync();
+            }
+            return Ok(new ObjectResult<Producto>()
+            {
+                Result = true,
+                Respose = "Detalles de encuesta sincronizados correctamente"
+            });
+        }
+        #endregion
+
+        #region Descargar Datos
+        [HttpGet("Mediciones")]
+        public async Task<ActionResult<IEnumerable<Medicion>>> GetMedicion()
+        {
+            return await _context.Mediciones.Where(e => e.Activa).ToListAsync();
+        }
+
+        [Route("DescargarEncuestas")]
+        [HttpPost]
+        public async Task<ActionResult<Encuesta>> GetEncuestas(Peticion sincronizacion)
+        {
+            return await _context.Encuestas.Include(e => e.DetalleEncuestas).FirstOrDefaultAsync(m => m.CustomUserId == sincronizacion.UsuarioId);
+        }
+
         [Route("Productos")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductoDto>>> GetProductos()
+        public async Task<ActionResult<IEnumerable<ProductoDtoResponse>>> GetProductos()
         {
-            return await _context.Productos.Select(p => new ProductoDto
+            return await _context.Productos.Select(p => new ProductoDtoResponse
             {
                 BarCode = p.BarCode,
                 Nombre = p.Nombre,
@@ -203,39 +366,14 @@ namespace SondeoBackend.Controllers
                 MarcaId = p.MarcaId,
                 PropiedadesId = p.PropiedadesId
             }).ToListAsync();
-         }
+         }        
 
         [Route("Ciudades")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Ciudad>>> GetCiudades()
         {
             return await _manageLocales.GetCiudad();
-        }
-
-        [Route("Locales")]
-        [HttpPost]
-        public async Task<ActionResult<Local>> PostProducto(List<EnviarLocalesDto> enviarLocales)
-        {
-            foreach(EnviarLocalesDto local in enviarLocales)
-            {
-                var create = new Local
-                {
-                    Nombre = local.Nombre,
-                    Direccion = local.Direccion,
-                    Latitud = local.Latitud,
-                    Longitud = local.Longitud,
-                    CanalId = local.CanalId,
-                    CiudadId = local.CiudadId,
-                    Habilitado = local.Habilitado
-                };
-                await _manageLocales.PostLocal(create);
-            }
-            return Ok(new ObjectResult<Producto>()
-            {
-                Result = true,
-                Respose = "Productos creados correctamente"
-            });
-        }
+        }        
 
         [Route("Categorias")]
         [HttpGet]
@@ -275,39 +413,6 @@ namespace SondeoBackend.Controllers
         public async Task<IActionResult> PutProducto(long id, Producto registro)
         {
             return await _manageProductos.PutProducto(registro ,id);
-        }
-
-        [Route("Productos")]
-        [HttpPost]
-        public async Task<ActionResult<Producto>> PostProducto(Producto registro)
-        {
-            try
-            {
-                var productoConfirmacion = await _context.Productos.Where(p => p.Nombre.Equals(registro.Nombre)).FirstOrDefaultAsync();
-                if (productoConfirmacion != null)
-                {
-                    return BadRequest(error: new ObjectResult<Producto>()
-                    {
-                        Result = false,
-                        Respose = "Ya hay un producto con el mismo nombre"
-                    });
-                }
-                _context.Productos.Add(registro);
-                await _context.SaveChangesAsync();
-                return Ok(new ObjectResult<Producto>()
-                {
-                    Result = true,
-                    Respose = "Producto creado correctamente"
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(error: new ObjectResult<Producto>()
-                {
-                    Result = false,
-                    Respose = $"No se pudo crear el producto {ex.Message}"
-                });
-            }
         }
 
         [HttpDelete("Productos/{id}")]

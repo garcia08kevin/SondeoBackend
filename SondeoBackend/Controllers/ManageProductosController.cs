@@ -95,7 +95,7 @@ namespace SondeoBackend.Controllers
                     bytes = br.ReadBytes((int)producto.Imagen.Length);
                 }
             }
-            var comprobarExistente = await _context.Productos.Where(e => e.Nombre == producto.Nombre).Where(e => e.CategoriaId == producto.CategoriaId).Where(e => e.MarcaId == producto.MarcaId).Where(e => e.PropiedadesId == producto.PropiedadesId).Where(e => e.BarCode == producto.BarCode).FirstOrDefaultAsync();
+            var comprobarExistente = await _context.Productos.Where(e => e.Nombre.Equals(producto.Nombre) && e.CategoriaId == producto.CategoriaId && e.PropiedadesId == producto.PropiedadesId && e.MarcaId == producto.MarcaId).FirstOrDefaultAsync();
             if (comprobarExistente != null)
             {
                 return Ok(new ObjectResult<Producto>()
@@ -104,7 +104,16 @@ namespace SondeoBackend.Controllers
                     Respose = "El producto con las caracteristicas ingresadas ya esta en el sistema"
                 });
             };
-            if(producto.BarCode == null)
+            var comprobarCodigo = await _context.Productos.FirstOrDefaultAsync(e=>e.BarCode == producto.BarCode);
+            if (comprobarCodigo != null)
+            {
+                return Ok(new ObjectResult<Producto>()
+                {
+                    Result = false,
+                    Respose = "Este codigo de barra ya esta en uso"
+                });
+            };
+            if (producto.BarCode == null)
             {
                 return Ok(new ObjectResult<Producto>()
                 {
@@ -416,8 +425,7 @@ namespace SondeoBackend.Controllers
         public async Task<ActionResult<Propiedades>> PostPropiedades(Propiedades propiedades)
         {
             try
-            {
-                _context.Propiedades.Add(propiedades);
+            {                
                 var propiedadConfirmacion = await _context.Propiedades.Where(p => p.NombrePropiedades.Equals(propiedades.NombrePropiedades)).FirstOrDefaultAsync();
                 if (propiedadConfirmacion != null)
                 {
@@ -427,11 +435,13 @@ namespace SondeoBackend.Controllers
                         Respose = "Ya hay una propiedad con el mismo nombre"
                     });
                 }
+                _context.Propiedades.Add(propiedades);
                 await _context.SaveChangesAsync();
                 return Ok(new ObjectResult<Propiedades>()
                 {
                     Result = true,
-                    Respose = "Elemento agregado correctamente"
+                    Respose = "Elemento agregado correctamente",
+                    Object = propiedades
                 });
             }
             catch (Exception ex)

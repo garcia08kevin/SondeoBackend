@@ -38,7 +38,7 @@ namespace SondeoBackend.Controllers.UserManagement.Users
         {
             if (ModelState.IsValid)
             {
-                var user_exist = await _userManager.FindByEmailAsync(login.Email);
+                var user_exist = await _userManager.FindByNameAsync(login.UserName);
                 if (user_exist == null)
                 {
                     return Ok( new UserResult()
@@ -63,14 +63,14 @@ namespace SondeoBackend.Controllers.UserManagement.Users
                 var jwtToken = await GenerateToken(user_exist);
                 var handler = new JwtSecurityTokenHandler();
                 var jwtSecurityToken = handler.ReadJwtToken(jwtToken);
-                var role = await _userManager.GetRolesAsync(user_exist);
                 var email = jwtSecurityToken.Claims.FirstOrDefault(c => c.Type == "email");
                 var userData = new UserDetail()
                 {
                     Id = user_exist.Id,
                     Name = user_exist.Name,
                     Lastname = user_exist.Lastname,
-                    Role = role[0],
+                    Role = user_exist.Role,        
+                    UserName = user_exist.UserName,                    
                     Email = user_exist.Email,
                     Activado = user_exist.CuentaActiva,
                     CorreoActivado = user_exist.EmailConfirmed,
@@ -98,8 +98,8 @@ namespace SondeoBackend.Controllers.UserManagement.Users
             var claims = new List<Claim>
             {
                 new Claim(type: "Id", value: Convert.ToString(user.Id)),
-                    new Claim(type: JwtRegisteredClaimNames.Sub, value: user.Email),
-                    new Claim(type: JwtRegisteredClaimNames.Email, value: user.Email),
+                    new Claim(type: JwtRegisteredClaimNames.Sub, value: user.UserName),
+                    new Claim(type: JwtRegisteredClaimNames.UniqueName, value: user.UserName),
                     new Claim(type: JwtRegisteredClaimNames.Jti, value: Guid.NewGuid().ToString()),
                     new Claim(type: JwtRegisteredClaimNames.Iat, value: DateTime.UtcNow.ToUniversalTime().ToString())
             };
@@ -126,11 +126,11 @@ namespace SondeoBackend.Controllers.UserManagement.Users
             var jwt_token = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_configuration.GetSection(key: "JwtConfig:Secret").Value);
             var claims = await GetValidClaims(user);
-            var role = await _userManager.GetRolesAsync(user);
+            //var role = await _userManager.GetRolesAsync(user);
             var tokenDescriptor = new SecurityTokenDescriptor()
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = role[0].Equals("Administrador") ? DateTime.UtcNow.AddHours(2) : DateTime.UtcNow.AddDays(15),
+                Expires = user.Role.Equals("Administrador") ? DateTime.UtcNow.AddHours(2) : DateTime.UtcNow.AddDays(15),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
             };
             var token = jwt_token.CreateToken(tokenDescriptor);

@@ -80,7 +80,7 @@ namespace SondeoBackend.Controllers.UserManagement.Users
         {
             if (ModelState.IsValid)
             {
-                var user_exist = await _userManager.FindByEmailAsync(verification.Email);
+                var user_exist = await _userManager.FindByNameAsync(verification.UserName);
                 if (user_exist == null)
                 {
                     return Ok(new UserResult() { Result = false, Respose = "El usuario no esta registrado" });

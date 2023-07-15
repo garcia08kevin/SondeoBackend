@@ -33,6 +33,7 @@ namespace SondeoBackend.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     CuentaActiva = table.Column<bool>(type: "boolean", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
+                    Role = table.Column<string>(type: "text", nullable: true),
                     Imagen = table.Column<byte[]>(type: "bytea", nullable: true),
                     Lastname = table.Column<string>(type: "text", nullable: false),
                     Alias = table.Column<string>(type: "text", nullable: true),
@@ -336,9 +337,10 @@ namespace SondeoBackend.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    FechaInicio = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    FechaCierre = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    FechaInicio = table.Column<DateOnly>(type: "date", nullable: true),
+                    FechaCierre = table.Column<DateOnly>(type: "date", nullable: true),
                     DiasTrabajados = table.Column<int>(type: "integer", nullable: true),
+                    Visita = table.Column<string>(type: "text", nullable: true),
                     CustomUserId = table.Column<int>(type: "integer", nullable: true),
                     LocalId = table.Column<int>(type: "integer", nullable: true),
                     MedicionId = table.Column<int>(type: "integer", nullable: true)

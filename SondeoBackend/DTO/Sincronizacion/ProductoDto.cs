@@ -2,7 +2,7 @@
 
 namespace SondeoBackend.DTO.Sincronizacion
 {
-    public class ProductoDto
+    public class ProductoDtoResponse
     {
         public long? BarCode { get; set; }
         public string? Nombre { get; set; }

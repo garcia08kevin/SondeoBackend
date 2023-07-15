@@ -12,7 +12,7 @@ using SondeoBackend.Context;
 namespace SondeoBackend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230708011545_InitialCreate")]
+    [Migration("20230714193142_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -218,6 +218,9 @@ namespace SondeoBackend.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Role")
+                        .HasColumnType("text");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
@@ -340,17 +343,20 @@ namespace SondeoBackend.Migrations
                     b.Property<int?>("DiasTrabajados")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime?>("FechaCierre")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly?>("FechaCierre")
+                        .HasColumnType("date");
 
-                    b.Property<DateTime?>("FechaInicio")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly?>("FechaInicio")
+                        .HasColumnType("date");
 
                     b.Property<int?>("LocalId")
                         .HasColumnType("integer");
 
                     b.Property<int?>("MedicionId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Visita")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 

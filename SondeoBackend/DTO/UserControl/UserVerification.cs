@@ -5,7 +5,7 @@ namespace SondeoBackend.DTO.UserControl
     public class UserVerification
     {
         [Required]
-        public string Email { get; set; }
+        public string UserName { get; set; }
         [Required]
         public string OldPassword { get; set; }
         [Required]

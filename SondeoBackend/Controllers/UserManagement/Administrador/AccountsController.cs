@@ -14,7 +14,7 @@ using SondeoBackend.Models;
 
 namespace SondeoBackend.Controllers.UserManagement.Administrador
 {
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
+    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
     [Route("api/[controller]")]
     [ApiController]
     public class AccountsController : ControllerBase
@@ -44,13 +44,13 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
             if (ModelState.IsValid)
             {
                 var alias = "";
-                var user_exist = await _userManager.FindByEmailAsync(user.Email);
+                var user_exist = await _userManager.FindByNameAsync(user.UserName);
                 if (user_exist != null)
                 {
                     return BadRequest(error: new UserResult()
                     {
                         Result = false,
-                        Respose = "El correo ingresado ya existe"
+                        Respose = "El nombre de usuario ingresado ya existe"
                     });
                 }
                 var role_exist = await _roleManager.FindByNameAsync(user.Role);
@@ -75,17 +75,18 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
                     var new_user = new CustomUser()
                     {
                         Email = user.Email,
-                        UserName = user.Email,
+                        UserName = user.UserName,
                         Name = user.Name,
                         Lastname = user.Lastname,
-                        Alias = alias.ToUpper()
+                        Alias = alias.ToUpper(),
+                        Role = user.Role
                     };
                     var pass_generate = GenerateRandomPassword();
                     var is_create = await _userManager.CreateAsync(new_user, pass_generate);
                     if (is_create.Succeeded)
                     {
-                        var body = $"<div class=\"homePage\">\r\n    <div class=\"col-xs-12 col-sm-12 col-md-offset-2 col-md-10 col-lg-offset-2 col-lg-10\">\r\n        <div class=\"container col-md-12 col-lg-12\">\r\n            <!--Inicio recuperar contraseña -->\r\n     <h2 class=\"form-signin-heading recuperarPassTitl text-center\">Tu cuenta ha sido creada</h2>\r\n     <p class=\"subtreestablecerPass text-center\">Hola nombre, tu cuenta en Sondeo ha sido activada, estas son tus credenciales:</p>       \r\n        <ul>\r\n            <li> Email: {new_user.Email} XD</li>\r\n            <li> Contraseña: {pass_generate} </li>\r\n            <li> Rol: {user.Role} ss </li>        \r\n        </ul>\r\n    </div> \r\n </div> ";
-                        SendEmail(body, new_user.Email, "CuentaActivada");
+                        //var body = $"<div class=\"homePage\">\r\n    <div class=\"col-xs-12 col-sm-12 col-md-offset-2 col-md-10 col-lg-offset-2 col-lg-10\">\r\n        <div class=\"container col-md-12 col-lg-12\">\r\n            <!--Inicio recuperar contraseña -->\r\n     <h2 class=\"form-signin-heading recuperarPassTitl text-center\">Tu cuenta ha sido creada</h2>\r\n     <p class=\"subtreestablecerPass text-center\">Hola nombre, tu cuenta en Sondeo ha sido activada, estas son tus credenciales:</p>       \r\n        <ul>\r\n            <li> Email: {new_user.Email} XD</li>\r\n            <li> Contraseña: {pass_generate} </li>\r\n            <li> Rol: {user.Role} ss </li>        \r\n        </ul>\r\n    </div> \r\n </div> ";
+                        //SendEmail(body, new_user.Email, "CuentaActivada");
                         await _userManager.AddToRoleAsync(new_user, user.Role);
                         return Ok(new UserResult()
                         {
@@ -108,7 +109,20 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
         [Route("GetUsers")]
         public async Task<IActionResult> GetAllUsers()
         {
-            var users = await _userManager.Users.ToListAsync();
+            var users = await _userManager.Users.Select(x => new UserDetail
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Lastname = x.Lastname,
+                Role = x.Role,
+                Email = x.Email,
+                UserName = x.UserName,
+                Alias = x.Alias,
+                Activado = x.CuentaActiva,
+                CorreoActivado = x.EmailConfirmed
+
+            }
+            ).ToListAsync();
             return Ok(users);
         }
 
@@ -163,17 +177,45 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
         }
 
         [HttpPost]
+        [Route("CreateRole")]
+        public async Task<IActionResult> CreateRoles(string name)
+        {
+            var roleExist = await _roleManager.RoleExistsAsync(name);
+            if (!roleExist)
+            {
+                var roleResult = await _roleManager.CreateAsync(new CustomRole(name));
+                if (roleResult.Succeeded)
+                {
+                    _logger.LogInformation($"El rol {name} ha sido a agregado correctamente");
+                    return Ok(new
+                    {
+                        result = $"El rol {name} ha sido a agregado correctamente"
+                    });
+                }
+                else
+                {
+                    _logger.LogInformation($"El rol {name} no pudo ser creado");
+                    return Ok(new
+                    {
+                        error = $"El rol {name} no pudo ser creado"
+                    });
+                }
+            }
+            return BadRequest(new { error = "El Rol no exite" });
+        }
+
+        [HttpPost]
         [Route("ActivarUsuario")]
-        public async Task<bool> ActivarUsuario(string email, bool eleccion)
+        public async Task<bool> ActivarUsuario(string username, bool eleccion)
         {
             if (ModelState.IsValid)
             {
-                var user_exist = await _userManager.FindByEmailAsync(email);
+                var user_exist = await _userManager.FindByNameAsync(username);
                 if (user_exist == null)
                 {
                     return false;
                 }
-                var user = _context.Users.First(a => a.Email == email);
+                var user = _context.Users.First(a => a.UserName.Equals(username));
                 if (!eleccion)
                 {
                     user.CuentaActiva = false;
@@ -252,20 +294,20 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
             }
         }
 
-        public static void SendEmail(string body, string destinatario, string subject)
-        {
-            var email = new MimeMessage();
-            email.From.Add(MailboxAddress.Parse("bradley.emard@ethereal.email"));
-            email.To.Add(MailboxAddress.Parse(destinatario));
-            email.Subject = subject;
-            email.Body = new TextPart(MimeKit.Text.TextFormat.Html) { Text = body };
+        //public static void SendEmail(string body, string destinatario, string subject)
+        //{
+        //    var email = new MimeMessage();
+        //    email.From.Add(MailboxAddress.Parse("bradley.emard@ethereal.email"));
+        //    email.To.Add(MailboxAddress.Parse(destinatario));
+        //    email.Subject = subject;
+        //    email.Body = new TextPart(MimeKit.Text.TextFormat.Html) { Text = body };
 
-            using var smtp = new SmtpClient();
-            smtp.Connect("smtp.ethereal.email", 587, MailKit.Security.SecureSocketOptions.StartTls);
-            smtp.Authenticate("bradley.emard@ethereal.email", "HRja57PgmHAFRamyPw");
-            smtp.Send(email);
-            smtp.Disconnect(true);
-        }
+        //    using var smtp = new SmtpClient();
+        //    smtp.Connect("smtp.ethereal.email", 587, MailKit.Security.SecureSocketOptions.StartTls);
+        //    smtp.Authenticate("bradley.emard@ethereal.email", "HRja57PgmHAFRamyPw");
+        //    smtp.Send(email);
+        //    smtp.Disconnect(true);
+        //}
 
         public static string GenerateRandomPassword(PasswordOptions opts = null)
         {
@@ -325,6 +367,24 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
         {
             var roles = _roleManager.Roles.ToList();
             return Ok(roles);
+        }
+
+        [HttpGet]
+        [Route("GetUserRol/{userId}")]
+        public async Task<IActionResult> GetUserRol(int userId)
+        {
+            var user_exist = await _userManager.FindByIdAsync(Convert.ToString(userId));
+            if (user_exist == null)
+            {
+                return BadRequest(error: new UserResult()
+                {
+                    Result = false,
+                    Respose = "El usuario no esta registrado"
+                });
+            }
+            var role = await _userManager.GetRolesAsync(user_exist);
+            var roles = _roleManager.Roles.ToList();
+            return Ok(roles[0]);
         }
 
         [HttpPost]
