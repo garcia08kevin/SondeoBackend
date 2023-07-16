@@ -209,28 +209,36 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
 
         [HttpPost]
         [Route("ActivarUsuario")]
-        public async Task<bool> ActivarUsuario(string username, bool eleccion)
+        public async Task<IActionResult> ActivarUsuario(string username, bool eleccion)
         {
-            if (ModelState.IsValid)
+            try
             {
                 var user_exist = await _userManager.FindByNameAsync(username);
                 if (user_exist == null)
                 {
-                    return false;
+                    return Ok(new ObjectResult<CustomUser>()
+                    {
+                        Result = false,
+                        Respose = "El usuario no fue encontrado"
+                    });
                 }
                 var user = _context.Users.First(a => a.UserName.Equals(username));
-                if (!eleccion)
-                {
-                    user.CuentaActiva = false;
-                    await _context.SaveChangesAsync();
-                    return true;
-                }
-                user.CuentaActiva = true;
+                user.CuentaActiva = eleccion ? true : false;
                 await _context.SaveChangesAsync();
-                return true;
+                return Ok(new ObjectResult<CustomUser>()
+                {
+                    Result = true,
+                    Respose = "Se ha reseteado el usuario con exito"
+                });
 
-            }
-            return false;
+            }catch(Exception ex)
+            {
+                return BadRequest(error: new UserResult()
+                {
+                    Result = false,
+                    Respose = $"No se pudo activar el usuario {ex.Message}"
+                });
+            }           
         }
 
         [HttpPost]
