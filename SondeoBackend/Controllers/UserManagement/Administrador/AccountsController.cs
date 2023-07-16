@@ -144,10 +144,13 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
                 var role = await _userManager.GetRolesAsync(user_exist);
                 return Ok(new UserDetail()
                 {
+                    Id = user_exist.Id,
                     Name = user_exist.Name,
                     Lastname = user_exist.Lastname,
-                    Role = role[0],
+                    Role = user_exist.Role,
                     Email = user_exist.Email,
+                    UserName = user_exist.UserName,
+                    Alias = user_exist.Alias,
                     Activado = user_exist.CuentaActiva,
                     CorreoActivado = user_exist.EmailConfirmed
                 });
