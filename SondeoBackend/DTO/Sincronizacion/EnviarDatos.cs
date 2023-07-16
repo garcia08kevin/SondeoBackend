@@ -4,6 +4,10 @@ namespace SondeoBackend.DTO.Sincronizacion
 {
     public class EnviarDatos
     {
+        public class LocalesByUser
+        {
+            public List<Local> locales { get; set; }
+        }
         public class SendSyncDto
         {
             public List<EnviarLocalesDto>? Locales { get; set; }
@@ -29,9 +33,9 @@ namespace SondeoBackend.DTO.Sincronizacion
             public int Id_encuestador { get; set; }
             public int Id_local { get; set; }
             public int Id_medicion { get; set; }
-            public DateOnly Fecha_init { get; set; }
-            public DateOnly Fecha_cierre { get; set; }
-            public int? Dias_trabajados { get; set; }
+            public DateOnly? Fecha_init { get; set; }
+            public DateOnly? Fecha_cierre { get; set; }
+            public int Dias_trabajados { get; set; }
             public string? Visita { get; set; }
             public bool Habilitado { get; set; }
         }

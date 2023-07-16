@@ -223,35 +223,21 @@ namespace SondeoBackend.Controllers
                     _context.Propiedades.Add(propiedad);
                     await _context.SaveChangesAsync();
                 }                
-                var comprobarExistente = await _context.Productos.Where(e => e.CategoriaId == producto.Id_categoria && e.PropiedadesId == (propiedadConfirmacion == null ? propiedad.Id : propiedadConfirmacion.Id) && e.MarcaId == producto.Id_marca).FirstOrDefaultAsync();
-                if (comprobarExistente != null)
-                {
-                    return Ok(new ObjectResult<Producto>()
-                    {
-                        Result = false,
-                        Respose = "El producto con las caracteristicas ingresadas ya esta en el sistema"
-                    });
-                };
                 var comprobarCodigo = await _context.Productos.FirstOrDefaultAsync(e => e.BarCode == producto.Id);
-                if (comprobarCodigo != null)
+                if (comprobarCodigo == null)
                 {
-                    return Ok(new ObjectResult<Producto>()
+                    var create = new Producto
                     {
-                        Result = false,
-                        Respose = "Este codigo de barra ya esta en uso"
-                    });
-                };
-                var create = new Producto
-                {
-                    BarCode = producto.Id,
-                    CategoriaId = producto.Id_categoria,
-                    MarcaId = producto.Id_marca,
-                    PropiedadesId = propiedadConfirmacion == null ? propiedad.Id : propiedadConfirmacion.Id,
-                    Imagen = producto.Foto.IsEmpty() || producto.Foto.Equals("") ? null : Encoding.ASCII.GetBytes(producto.Foto)
+                        BarCode = producto.Id,
+                        CategoriaId = producto.Id_categoria,
+                        MarcaId = producto.Id_marca,
+                        PropiedadesId = propiedadConfirmacion == null ? propiedad.Id : propiedadConfirmacion.Id,
+                        Imagen = producto.Foto.IsEmpty() || producto.Foto.Equals("") ? null : Encoding.ASCII.GetBytes(producto.Foto)
 
-                };
-                _context.Productos.Add(create);
-                await _context.SaveChangesAsync();
+                    };
+                    _context.Productos.Add(create);
+                    await _context.SaveChangesAsync();
+                };                
             }
             return Ok(new ObjectResult<Producto>()
             {
@@ -348,9 +334,21 @@ namespace SondeoBackend.Controllers
 
         [Route("DescargarEncuestas")]
         [HttpPost]
-        public async Task<ActionResult<Encuesta>> GetEncuestas(Peticion sincronizacion)
+        public async Task<ActionResult<IEnumerable<EnviarEncuestasDto>>> GetEncuestas(Peticion sincronizacion)
         {
-            return await _context.Encuestas.Include(e => e.DetalleEncuestas).FirstOrDefaultAsync(m => m.CustomUserId == sincronizacion.UsuarioId);
+            var encuestas = await _context.Encuestas.Include(e => e.DetalleEncuestas).Where(m => m.CustomUserId == sincronizacion.UsuarioId && m.MedicionId == sincronizacion.MedicionId).ToListAsync();
+            return encuestas.Select(e => new EnviarEncuestasDto
+            {
+                Id = e.Id,
+                Id_encuestador = e.CustomUserId,
+                Id_local = e.LocalId,
+                Id_medicion = e.MedicionId,
+                Fecha_init = e.FechaInicio,
+                Fecha_cierre = e.FechaCierre,
+                Dias_trabajados = e.DiasTrabajados,
+                Visita = e.Visita,
+                Habilitado = true
+            }).ToList();
         }
 
         [Route("Productos")]
@@ -373,7 +371,29 @@ namespace SondeoBackend.Controllers
         public async Task<ActionResult<IEnumerable<Ciudad>>> GetCiudades()
         {
             return await _manageLocales.GetCiudad();
-        }        
+        }
+
+        [HttpGet("Locales/{userId}")]
+        public async Task<ActionResult<IEnumerable<EnviarLocalesDto>>> GetLocales(int userId)
+        {
+            List<Local> locales = new List<Local>();
+            var encuestas = await _context.Encuestas.Include(e => e.Medicion).Include(e => e.Local).Where(e => e.Medicion.Activa && e.CustomUserId == userId).ToListAsync();
+            foreach(Encuesta encuesta in encuestas)
+            {
+                locales.Add(encuesta.Local);
+            }
+            return locales.Select(e=> new EnviarLocalesDto
+            {
+                Id = e.Id,
+                Id_canal = e.CanalId,
+                Nombre = e.Nombre,
+                Direccion = e.Direccion,
+                Latitud = e.Latitud,
+                Longitud = e.Longitud,
+                CiudadId = e.CiudadId,
+                Habilitado = e.Habilitado
+            }).ToList();
+        }
 
         [Route("Categorias")]
         [HttpGet]
