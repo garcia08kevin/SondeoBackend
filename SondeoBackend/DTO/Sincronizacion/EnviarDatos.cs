@@ -4,6 +4,15 @@ namespace SondeoBackend.DTO.Sincronizacion
 {
     public class EnviarDatos
     {
+        public class PeticionEncuestas
+        {
+            public int MedicionId { get; set; }
+            public int UsuarioId { get; set; }
+        }
+        public class PeticionLocales
+        {
+            public int Id_encuestador { get; set; }
+        }
         public class LocalesByUser
         {
             public List<Local> locales { get; set; }

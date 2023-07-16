@@ -334,7 +334,7 @@ namespace SondeoBackend.Controllers
 
         [Route("DescargarEncuestas")]
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<EnviarEncuestasDto>>> GetEncuestas(Peticion sincronizacion)
+        public async Task<ActionResult<IEnumerable<EnviarEncuestasDto>>> GetEncuestas(PeticionEncuestas sincronizacion)
         {
             var encuestas = await _context.Encuestas.Include(e => e.DetalleEncuestas).Where(m => m.CustomUserId == sincronizacion.UsuarioId && m.MedicionId == sincronizacion.MedicionId).ToListAsync();
             return encuestas.Select(e => new EnviarEncuestasDto
@@ -373,11 +373,11 @@ namespace SondeoBackend.Controllers
             return await _manageLocales.GetCiudad();
         }
 
-        [HttpGet("Locales/{userId}")]
-        public async Task<ActionResult<IEnumerable<EnviarLocalesDto>>> GetLocales(int userId)
+        [HttpPost("DescargarLocales")]
+        public async Task<ActionResult<IEnumerable<EnviarLocalesDto>>> GetLocales(PeticionLocales sincronizacion)
         {
             List<Local> locales = new List<Local>();
-            var encuestas = await _context.Encuestas.Include(e => e.Medicion).Include(e => e.Local).Where(e => e.Medicion.Activa && e.CustomUserId == userId).ToListAsync();
+            var encuestas = await _context.Encuestas.Include(e => e.Medicion).Include(e => e.Local).Where(e => e.Medicion.Activa && e.CustomUserId == sincronizacion.Id_encuestador).ToListAsync();
             foreach(Encuesta encuesta in encuestas)
             {
                 locales.Add(encuesta.Local);
