@@ -181,7 +181,7 @@ namespace SondeoBackend.Controllers
         #endregion
 
         #region Sincronizar Datos
-        [Route("SendSync")]
+        [Route("SincronizacionCompleta")]
         [HttpPost]
         public async Task<ActionResult<Local>> SendSync(SendSyncDto data)
         {

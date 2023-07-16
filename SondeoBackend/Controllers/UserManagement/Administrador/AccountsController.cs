@@ -216,7 +216,7 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
                 var user_exist = await _userManager.FindByNameAsync(username);
                 if (user_exist == null)
                 {
-                    return Ok(new ObjectResult<CustomUser>()
+                    return BadRequest(error: new UserResult()
                     {
                         Result = false,
                         Respose = "El usuario no fue encontrado"
