@@ -51,6 +51,7 @@ namespace SondeoBackend.DTO.Sincronizacion
             public int Dias_trabajados { get; set; }
             public string? Visita { get; set; }
             public bool Habilitado { get; set; }
+            public IEnumerable<DetalleEncuesta>? DetalleEncuestas { get; set; }
         }
 
         public class PropiedadDto

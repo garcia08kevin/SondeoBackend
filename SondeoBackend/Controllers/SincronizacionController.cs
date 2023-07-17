@@ -354,7 +354,8 @@ namespace SondeoBackend.Controllers
                 Fecha_cierre = e.FechaCierre.ToString(),
                 Dias_trabajados = e.DiasTrabajados,
                 Visita = e.Visita,
-                Habilitado = true
+                Habilitado = true,
+                DetalleEncuestas = e.DetalleEncuestas
             }).ToList();
         }
 
