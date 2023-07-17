@@ -214,9 +214,10 @@ namespace SondeoBackend.Controllers
             {
                 var propiedad = new Propiedades
                 {
-                    NombrePropiedades = producto.NombrePropiedad
+                    Id = producto.id_propiedades,
+                    NombrePropiedades = producto.propiedad
                 };
-                var propiedadConfirmacion = await _context.Propiedades.Where(p => p.NombrePropiedades.Equals(producto.NombrePropiedad)).FirstOrDefaultAsync();
+                var propiedadConfirmacion = await _context.Propiedades.Where(p => p.NombrePropiedades.Equals(producto.propiedad)).FirstOrDefaultAsync();
                 if (propiedadConfirmacion == null)
                 {
                     _context.Propiedades.Add(propiedad);
@@ -279,11 +280,12 @@ namespace SondeoBackend.Controllers
             {
                 var create = new Encuesta
                 {
+                    Id = encuesta.Id_encuestador,
                     CustomUserId = encuesta.Id_encuestador,
                     LocalId = encuesta.Id_local,
                     MedicionId = encuesta.Id_medicion,
-                    FechaInicio = DateTime.ParseExact(encuesta.Fecha_init, "yyyy-MM-dd HH:mm:ss,fff", System.Globalization.CultureInfo.InvariantCulture),
-                    FechaCierre = DateTime.ParseExact(encuesta.Fecha_cierre, "yyyy-MM-dd HH:mm:ss,fff", System.Globalization.CultureInfo.InvariantCulture),
+                    FechaInicio = DateTime.ParseExact(encuesta.Fecha_init, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
+                    FechaCierre = DateTime.ParseExact(encuesta.Fecha_cierre, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
                     DiasTrabajados = encuesta.Dias_trabajados,
                     Visita = encuesta.Visita
                 };
@@ -303,18 +305,24 @@ namespace SondeoBackend.Controllers
         {
             foreach (DetalleEncuestaDto detalleEncuesta in enviarDetalleEncuesta)
             {
-                var create = new DetalleEncuesta
+                var encuesta = await _context.Encuestas.FirstOrDefaultAsync(e=> e.Id == detalleEncuesta.Id_encuesta);
+                if(encuesta != null)
                 {
-                    EncuestaId = detalleEncuesta.Id_encuesta,
-                    ProductoId = detalleEncuesta.Id_producto,
-                    StockInicial = detalleEncuesta.Stock_init,
-                    StockFinal = detalleEncuesta.Stock_fin,
-                    Compra = detalleEncuesta.Compra,
-                    Pvd = detalleEncuesta.Pvd,
-                    Pvp = detalleEncuesta.Pvp
-                };
-                _context.DetalleEncuestas.Add(create);
-                await _context.SaveChangesAsync();
+                    var create = new DetalleEncuesta
+                    {
+                        Id = encuesta.Id,
+                        EncuestaId = encuesta.Id,
+                        ProductoId = detalleEncuesta.Id_producto,
+                        StockInicial = detalleEncuesta.Stock_init,
+                        StockFinal = detalleEncuesta.Stock_fin,
+                        Compra = detalleEncuesta.Compra,
+                        Pvd = detalleEncuesta.Pvd,
+                        Pvp = detalleEncuesta.Pvp
+                    };
+                    _context.DetalleEncuestas.Add(create);
+                    await _context.SaveChangesAsync();
+                }
+                
             }
             return Ok(new ObjectResult<Producto>()
             {

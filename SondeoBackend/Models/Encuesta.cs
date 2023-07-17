@@ -6,7 +6,7 @@ namespace SondeoBackend.Models
 {
     public class Encuesta
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         public DateTime? FechaInicio { get; set; }
         public DateTime? FechaCierre { get; set; }
         public int DiasTrabajados { get; set; }

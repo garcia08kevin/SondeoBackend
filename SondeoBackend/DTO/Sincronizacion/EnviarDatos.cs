@@ -42,7 +42,7 @@ namespace SondeoBackend.DTO.Sincronizacion
 
         public class EnviarEncuestasDto
         {
-            public int Id { get; set; }
+            public long Id { get; set; }
             public int Id_encuestador { get; set; }
             public int Id_local { get; set; }
             public int Id_medicion { get; set; }
@@ -64,13 +64,14 @@ namespace SondeoBackend.DTO.Sincronizacion
             public long Id { get; set; }
             public int Id_categoria { get; set; }
             public int Id_marca { get; set; }
-            public string? NombrePropiedad { get; set; }
+            public long id_propiedades { get; set; }
+            public string? propiedad { get; set; }
             public string? Foto { get; set; }
         }
 
         public class DetalleEncuestaDto
         {
-            public int Id { get; set; }
+            public long Id { get; set; }
             public int Id_encuesta { get; set; }
             public long Id_producto { get; set; }
             public int Stock_init { get; set; }

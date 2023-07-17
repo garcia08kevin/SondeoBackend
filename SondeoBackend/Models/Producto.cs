@@ -23,6 +23,6 @@ namespace SondeoBackend.Models
 
         [ForeignKey("PropiedadesId")]
         public Propiedades? Propiedades { get; set; }
-        public int PropiedadesId { get; set; }
+        public long PropiedadesId { get; set; }
     }
 }

@@ -291,17 +291,17 @@ namespace SondeoBackend.Migrations
 
             modelBuilder.Entity("SondeoBackend.Models.DetalleEncuesta", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("bigint");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<float?>("Compra")
                         .HasColumnType("real");
 
-                    b.Property<int?>("EncuestaId")
-                        .HasColumnType("integer");
+                    b.Property<long?>("EncuestaId")
+                        .HasColumnType("bigint");
 
                     b.Property<long>("ProductoId")
                         .HasColumnType("bigint");
@@ -329,11 +329,11 @@ namespace SondeoBackend.Migrations
 
             modelBuilder.Entity("SondeoBackend.Models.Encuesta", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("bigint");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<int>("CustomUserId")
                         .HasColumnType("integer");
@@ -488,8 +488,8 @@ namespace SondeoBackend.Migrations
                     b.Property<string>("Nombre")
                         .HasColumnType("text");
 
-                    b.Property<int>("PropiedadesId")
-                        .HasColumnType("integer");
+                    b.Property<long>("PropiedadesId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("BarCode");
 
@@ -504,11 +504,11 @@ namespace SondeoBackend.Migrations
 
             modelBuilder.Entity("SondeoBackend.Models.Propiedades", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("bigint");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<string>("NombrePropiedades")
                         .HasColumnType("text");

@@ -130,7 +130,7 @@ namespace SondeoBackend.Migrations
                 name: "Propiedades",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     NombrePropiedades = table.Column<string>(type: "text", nullable: true)
                 },
@@ -299,7 +299,7 @@ namespace SondeoBackend.Migrations
                     Activado = table.Column<bool>(type: "boolean", nullable: false),
                     CategoriaId = table.Column<int>(type: "integer", nullable: false),
                     MarcaId = table.Column<int>(type: "integer", nullable: false),
-                    PropiedadesId = table.Column<int>(type: "integer", nullable: false)
+                    PropiedadesId = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -328,7 +328,7 @@ namespace SondeoBackend.Migrations
                 name: "Encuestas",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     FechaInicio = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     FechaCierre = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -365,14 +365,14 @@ namespace SondeoBackend.Migrations
                 name: "DetalleEncuestas",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     StockInicial = table.Column<int>(type: "integer", nullable: true),
                     StockFinal = table.Column<int>(type: "integer", nullable: true),
                     Compra = table.Column<float>(type: "real", nullable: true),
                     Pvd = table.Column<float>(type: "real", nullable: true),
                     Pvp = table.Column<float>(type: "real", nullable: true),
-                    EncuestaId = table.Column<int>(type: "integer", nullable: true),
+                    EncuestaId = table.Column<long>(type: "bigint", nullable: true),
                     ProductoId = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
