@@ -282,8 +282,8 @@ namespace SondeoBackend.Controllers
                     CustomUserId = encuesta.Id_encuestador,
                     LocalId = encuesta.Id_local,
                     MedicionId = encuesta.Id_medicion,
-                    FechaInicio = encuesta.Fecha_init,
-                    FechaCierre = encuesta.Fecha_cierre,
+                    FechaInicio = DateTime.ParseExact(encuesta.Fecha_init, "yyyy-MM-dd HH:mm:ss,fff", System.Globalization.CultureInfo.InvariantCulture),
+                    FechaCierre = DateTime.ParseExact(encuesta.Fecha_cierre, "yyyy-MM-dd HH:mm:ss,fff", System.Globalization.CultureInfo.InvariantCulture),
                     DiasTrabajados = encuesta.Dias_trabajados,
                     Visita = encuesta.Visita
                 };
@@ -342,8 +342,8 @@ namespace SondeoBackend.Controllers
                 Id_encuestador = e.CustomUserId,
                 Id_local = e.LocalId,
                 Id_medicion = e.MedicionId,
-                Fecha_init = e.FechaInicio,
-                Fecha_cierre = e.FechaCierre,
+                Fecha_init = e.FechaInicio.ToString(),
+                Fecha_cierre = e.FechaCierre.ToString(),
                 Dias_trabajados = e.DiasTrabajados,
                 Visita = e.Visita,
                 Habilitado = true

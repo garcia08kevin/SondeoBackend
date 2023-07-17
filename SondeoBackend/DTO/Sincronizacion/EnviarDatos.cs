@@ -46,8 +46,8 @@ namespace SondeoBackend.DTO.Sincronizacion
             public int Id_encuestador { get; set; }
             public int Id_local { get; set; }
             public int Id_medicion { get; set; }
-            public DateTime? Fecha_init { get; set; }
-            public DateTime? Fecha_cierre { get; set; }
+            public string? Fecha_init { get; set; }
+            public string? Fecha_cierre { get; set; }
             public int Dias_trabajados { get; set; }
             public string? Visita { get; set; }
             public bool Habilitado { get; set; }
