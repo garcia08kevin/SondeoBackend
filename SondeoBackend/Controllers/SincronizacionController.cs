@@ -17,6 +17,8 @@ using SondeoBackend.DTO.Sincronizacion;
 using static SondeoBackend.DTO.Sincronizacion.EnviarDatos;
 using System.Text;
 using System.Web.WebPages;
+using System.ComponentModel;
+using static AForge.Math.FourierTransform;
 
 namespace SondeoBackend.Controllers
 {
@@ -252,18 +254,31 @@ namespace SondeoBackend.Controllers
         {
             foreach (EnviarLocalesDto local in enviarLocales)
             {
-                var create = new Local
+                var existente = await _context.Locales.FirstOrDefaultAsync(e => e.Id == local.Id);
+                if (existente != null)
                 {
-                    Id = local.Id,
-                    Nombre = local.Nombre,
-                    Direccion = local.Direccion,
-                    Latitud = (float)local.Latitud,
-                    Longitud = (float)local.Longitud,
-                    CanalId = local.Id_canal,
-                    Habilitado = local.Habilitado
-                };
-                await _manageLocales.PostLocal(create);
-                await _context.SaveChangesAsync();
+                    existente.Nombre = local.Nombre;
+                    existente.Direccion = local.Direccion;
+                    existente.Latitud = (float)local.Latitud;
+                    existente.Longitud = (float)local.Longitud;
+                    existente.Habilitado = local.Habilitado;
+                    await _context.SaveChangesAsync();
+                }
+                else
+                {
+                    var create = new Local
+                    {
+                        Id = local.Id,
+                        Nombre = local.Nombre,
+                        Direccion = local.Direccion,
+                        Latitud = (float)local.Latitud,
+                        Longitud = (float)local.Longitud,
+                        CanalId = local.Id_canal,
+                        Habilitado = local.Habilitado
+                    };
+                    await _manageLocales.PostLocal(create);
+                    await _context.SaveChangesAsync();
+                }
             }
             return Ok(new ObjectResult<Producto>()
             {
@@ -278,19 +293,32 @@ namespace SondeoBackend.Controllers
         {
             foreach (EnviarEncuestasDto encuesta in enviarEncuesta)
             {
-                var create = new Encuesta
+                var existente = await _context.Encuestas.FirstOrDefaultAsync(e => e.Id == encuesta.Id);
+                if(existente != null)
                 {
-                    Id = encuesta.Id,
-                    CustomUserId = encuesta.Id_encuestador,
-                    LocalId = encuesta.Id_local,
-                    MedicionId = encuesta.Id_medicion,
-                    FechaInicio = DateTime.ParseExact(encuesta.Fecha_init, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
-                    FechaCierre = DateTime.ParseExact(encuesta.Fecha_cierre, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
-                    DiasTrabajados = encuesta.Dias_trabajados,
-                    Visita = encuesta.Visita
-                };
-                _context.Encuestas.Add(create);
-                await _context.SaveChangesAsync();
+                    existente.CustomUserId = encuesta.Id_encuestador;
+                    existente.FechaInicio = DateTime.ParseExact(encuesta.Fecha_init, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+                    existente.FechaCierre = DateTime.ParseExact(encuesta.Fecha_cierre, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+                    existente.DiasTrabajados = encuesta.Dias_trabajados;
+                    existente.Visita = encuesta.Visita;
+                    await _context.SaveChangesAsync();
+                }
+                else
+                {
+                    var create = new Encuesta
+                    {
+                        Id = encuesta.Id,
+                        CustomUserId = encuesta.Id_encuestador,
+                        LocalId = encuesta.Id_local,
+                        MedicionId = encuesta.Id_medicion,
+                        FechaInicio = DateTime.ParseExact(encuesta.Fecha_init, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
+                        FechaCierre = DateTime.ParseExact(encuesta.Fecha_cierre, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
+                        DiasTrabajados = encuesta.Dias_trabajados,
+                        Visita = encuesta.Visita
+                    };
+                    _context.Encuestas.Add(create);
+                    await _context.SaveChangesAsync();
+                }
             }
             return Ok(new ObjectResult<Encuesta>()
             {
@@ -308,19 +336,32 @@ namespace SondeoBackend.Controllers
                 var encuesta = await _context.Encuestas.FirstOrDefaultAsync(e=> e.Id == detalleEncuesta.Id_encuesta);
                 if(encuesta != null)
                 {
-                    var create = new DetalleEncuesta
+                    var existente = await _context.DetalleEncuestas.FirstOrDefaultAsync(e => e.Id == detalleEncuesta.Id);
+                    if (existente != null)
                     {
-                        Id = encuesta.Id,
-                        EncuestaId = encuesta.Id,
-                        ProductoId = detalleEncuesta.Id_producto,
-                        StockInicial = detalleEncuesta.Stock_init,
-                        StockFinal = detalleEncuesta.Stock_fin,
-                        Compra = detalleEncuesta.Compra,
-                        Pvd = detalleEncuesta.Pvd,
-                        Pvp = detalleEncuesta.Pvp
-                    };
-                    _context.DetalleEncuestas.Add(create);
-                    await _context.SaveChangesAsync();
+                        existente.StockInicial = detalleEncuesta.Stock_init;
+                        existente.StockFinal = detalleEncuesta.Stock_fin;
+                        existente.Compra = detalleEncuesta.Compra;
+                        existente.Pvd = detalleEncuesta.Pvd;
+                        existente.Pvp = detalleEncuesta.Pvp;
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        var create = new DetalleEncuesta
+                        {
+                            Id = encuesta.Id,
+                            EncuestaId = encuesta.Id,
+                            ProductoId = detalleEncuesta.Id_producto,
+                            StockInicial = detalleEncuesta.Stock_init,
+                            StockFinal = detalleEncuesta.Stock_fin,
+                            Compra = detalleEncuesta.Compra,
+                            Pvd = detalleEncuesta.Pvd,
+                            Pvp = detalleEncuesta.Pvp
+                        };
+                        _context.DetalleEncuestas.Add(create);
+                        await _context.SaveChangesAsync();
+                    }
                 }
                 
             }
