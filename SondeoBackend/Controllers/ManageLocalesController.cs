@@ -46,7 +46,17 @@ namespace SondeoBackend.Controllers
         [HttpGet("Locales/{id}")]
         public async Task<ActionResult<IEnumerable<Local>>> GetLocalById(int id)
         {
-            var local = await _context.Locales.FirstOrDefaultAsync(i => i.Id == id);
+            var locales = await _context.Locales.Include(e => e.Canal).Include(e => e.Encuestas).ThenInclude(e => e.Medicion).ThenInclude(e => e.Ciudad).ToListAsync();
+            var local = locales.Select(e => new LocalDto
+            {
+                Id = e.Id,
+                Nombre = e.Nombre,
+                Canal = e.Canal.NombreCanal,
+                Direccion = e.Direccion,
+                Ciudad = e.Encuestas.Count == 0 ? "Sin ciudad ni encuesta Asignada" : e.Encuestas.FirstOrDefault(e => e.Medicion.Activa).Medicion.Ciudad.NombreCiudad,
+                Habilitado = e.Habilitado
+
+            }).FirstOrDefault(i => i.Id == id);
             if (local == null)
             {
                 return BadRequest(error: new ObjectResult<Local>()
