@@ -28,9 +28,19 @@ namespace SondeoBackend.Controllers
         #region Locales
         [Route("Locales")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Local>>> GetLocales()
+        public async Task<ActionResult<IEnumerable<LocalDto>>> GetLocales()
         {
-            return await _context.Locales.Include(e => e.Canal).ToListAsync();
+            var locales = await _context.Locales.Include(e => e.Canal).Include(e => e.Encuestas).ThenInclude(e => e.Medicion).ThenInclude(e => e.Ciudad).ToListAsync();
+            return locales.Select(e => new LocalDto
+            {
+                Id = e.Id,
+                Nombre = e.Nombre,
+                Canal = e.Canal.NombreCanal,
+                Direccion = e.Direccion,
+                Ciudad = e.Encuestas.Count == 0 ? "Sin ciudad ni encuesta Asignada" : e.Encuestas.FirstOrDefault(e=>e.Medicion.Activa).Medicion.Ciudad.NombreCiudad,
+                Habilitado = e.Habilitado
+                
+            }).ToList();
         }
 
         [HttpGet("Locales/{id}")]
