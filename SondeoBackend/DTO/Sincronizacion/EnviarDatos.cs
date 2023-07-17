@@ -30,8 +30,8 @@ namespace SondeoBackend.DTO.Sincronizacion
             public int Id_canal { get; set; }
             public string? Nombre { get; set; }
             public string? Direccion { get; set; }
-            public float Latitud { get; set; }
-            public float Longitud { get; set; }            
+            public double Latitud { get; set; }
+            public double Longitud { get; set; }            
             public int CiudadId { get; set; }
             public bool Habilitado { get; set; }
         }

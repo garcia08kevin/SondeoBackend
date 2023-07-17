@@ -256,8 +256,8 @@ namespace SondeoBackend.Controllers
                 {
                     Nombre = local.Nombre,
                     Direccion = local.Direccion,
-                    Latitud = local.Latitud,
-                    Longitud = local.Longitud,
+                    Latitud = (float)local.Latitud,
+                    Longitud = (float)local.Longitud,
                     CanalId = local.Id_canal,
                     CiudadId = local.CiudadId,
                     Habilitado = local.Habilitado
