@@ -335,22 +335,22 @@ namespace SondeoBackend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("CustomUserId")
+                    b.Property<int>("CustomUserId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("DiasTrabajados")
+                    b.Property<int>("DiasTrabajados")
                         .HasColumnType("integer");
 
-                    b.Property<DateOnly?>("FechaCierre")
-                        .HasColumnType("date");
+                    b.Property<DateTime?>("FechaCierre")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateOnly?>("FechaInicio")
-                        .HasColumnType("date");
+                    b.Property<DateTime?>("FechaInicio")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("LocalId")
+                    b.Property<int>("LocalId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("MedicionId")
+                    b.Property<int>("MedicionId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Visita")
@@ -378,9 +378,6 @@ namespace SondeoBackend.Migrations
                     b.Property<int>("CanalId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("CiudadId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Direccion")
                         .HasColumnType("text");
 
@@ -399,8 +396,6 @@ namespace SondeoBackend.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CanalId");
-
-                    b.HasIndex("CiudadId");
 
                     b.ToTable("Locales");
                 });
@@ -595,15 +590,21 @@ namespace SondeoBackend.Migrations
                 {
                     b.HasOne("SondeoBackend.Configuration.CustomUser", "CustomUser")
                         .WithMany()
-                        .HasForeignKey("CustomUserId");
+                        .HasForeignKey("CustomUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("SondeoBackend.Models.Local", "Local")
                         .WithMany("Encuestas")
-                        .HasForeignKey("LocalId");
+                        .HasForeignKey("LocalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("SondeoBackend.Models.Medicion", "Medicion")
                         .WithMany("Encuestas")
-                        .HasForeignKey("MedicionId");
+                        .HasForeignKey("MedicionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("CustomUser");
 
@@ -620,15 +621,7 @@ namespace SondeoBackend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SondeoBackend.Models.Ciudad", "Ciudad")
-                        .WithMany("Locales")
-                        .HasForeignKey("CiudadId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Canal");
-
-                    b.Navigation("Ciudad");
                 });
 
             modelBuilder.Entity("SondeoBackend.Models.Medicion", b =>
@@ -665,11 +658,6 @@ namespace SondeoBackend.Migrations
                     b.Navigation("Marca");
 
                     b.Navigation("Propiedades");
-                });
-
-            modelBuilder.Entity("SondeoBackend.Models.Ciudad", b =>
-                {
-                    b.Navigation("Locales");
                 });
 
             modelBuilder.Entity("SondeoBackend.Models.Encuesta", b =>

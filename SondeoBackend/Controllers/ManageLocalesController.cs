@@ -28,19 +28,15 @@ namespace SondeoBackend.Controllers
         #region Locales
         [Route("Locales")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Local>>> GetLocales(int idCiudad = 0)
+        public async Task<ActionResult<IEnumerable<Local>>> GetLocales()
         {
-            if (idCiudad == 0)
-            {
-                return await _context.Locales.Include(e => e.Ciudad).Include(e => e.Canal).ToListAsync();
-            }
-            return await _context.Locales.Where(e => e.CiudadId == idCiudad).Include(e => e.Ciudad).Include(e => e.Canal).ToListAsync();
+            return await _context.Locales.Include(e => e.Canal).ToListAsync();
         }
 
         [HttpGet("Locales/{id}")]
         public async Task<ActionResult<IEnumerable<Local>>> GetLocalById(int id)
         {
-            var local = await _context.Locales.Include(e => e.Ciudad).FirstOrDefaultAsync(i => i.Id == id);
+            var local = await _context.Locales.FirstOrDefaultAsync(i => i.Id == id);
             if (local == null)
             {
                 return BadRequest(error: new ObjectResult<Local>()
@@ -218,7 +214,7 @@ namespace SondeoBackend.Controllers
             {
                 return NotFound();
             }
-            return await _context.Ciudades.Include(e => e.Locales).ToListAsync();
+            return await _context.Ciudades.ToListAsync();
         }
 
         [HttpGet("Ciudades/{id}")]

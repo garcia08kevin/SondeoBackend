@@ -12,9 +12,6 @@ namespace SondeoBackend.Models
         [ForeignKey("CanalId")]        
         public Canal? Canal { get; set; }        
         public int CanalId { get; set; }
-        [ForeignKey("CiudadId")]
-        public Ciudad? Ciudad { get; set; }
-        public int CiudadId { get; set; }
         public bool Habilitado { get; set; }
         public ICollection<Encuesta>? Encuestas { get; set; }
     }

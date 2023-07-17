@@ -256,7 +256,6 @@ namespace SondeoBackend.Migrations
                     Latitud = table.Column<float>(type: "real", nullable: false),
                     Longitud = table.Column<float>(type: "real", nullable: false),
                     CanalId = table.Column<int>(type: "integer", nullable: false),
-                    CiudadId = table.Column<int>(type: "integer", nullable: false),
                     Habilitado = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -266,12 +265,6 @@ namespace SondeoBackend.Migrations
                         name: "FK_Locales_Canales_CanalId",
                         column: x => x.CanalId,
                         principalTable: "Canales",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Locales_Ciudades_CiudadId",
-                        column: x => x.CiudadId,
-                        principalTable: "Ciudades",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -337,13 +330,13 @@ namespace SondeoBackend.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    FechaInicio = table.Column<DateOnly>(type: "date", nullable: true),
-                    FechaCierre = table.Column<DateOnly>(type: "date", nullable: true),
-                    DiasTrabajados = table.Column<int>(type: "integer", nullable: true),
+                    FechaInicio = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    FechaCierre = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DiasTrabajados = table.Column<int>(type: "integer", nullable: false),
                     Visita = table.Column<string>(type: "text", nullable: true),
-                    CustomUserId = table.Column<int>(type: "integer", nullable: true),
-                    LocalId = table.Column<int>(type: "integer", nullable: true),
-                    MedicionId = table.Column<int>(type: "integer", nullable: true)
+                    CustomUserId = table.Column<int>(type: "integer", nullable: false),
+                    LocalId = table.Column<int>(type: "integer", nullable: false),
+                    MedicionId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -352,17 +345,20 @@ namespace SondeoBackend.Migrations
                         name: "FK_Encuestas_AspNetUsers_CustomUserId",
                         column: x => x.CustomUserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Encuestas_Locales_LocalId",
                         column: x => x.LocalId,
                         principalTable: "Locales",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Encuestas_Mediciones_MedicionId",
                         column: x => x.MedicionId,
                         principalTable: "Mediciones",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -461,11 +457,6 @@ namespace SondeoBackend.Migrations
                 name: "IX_Locales_CanalId",
                 table: "Locales",
                 column: "CanalId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Locales_CiudadId",
-                table: "Locales",
-                column: "CiudadId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Mediciones_CiudadId",

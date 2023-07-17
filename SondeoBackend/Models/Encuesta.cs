@@ -7,8 +7,8 @@ namespace SondeoBackend.Models
     public class Encuesta
     {
         public int Id { get; set; }
-        public DateOnly? FechaInicio { get; set; }
-        public DateOnly? FechaCierre { get; set; }
+        public DateTime? FechaInicio { get; set; }
+        public DateTime? FechaCierre { get; set; }
         public int DiasTrabajados { get; set; }
         public string? Visita { get; set; }
         [ForeignKey("CustomUserId")]

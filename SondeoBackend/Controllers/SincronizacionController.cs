@@ -151,11 +151,10 @@ namespace SondeoBackend.Controllers
                     cont++;
                 }
             }
-            var fechaActual = DateOnly.FromDateTime(DateTime.Now);
             if (cont == 0)
             {
-                encuesta.FechaCierre = fechaActual;
-                encuesta.DiasTrabajados = fechaActual.DayNumber - encuesta.FechaInicio.Value.DayNumber;
+                encuesta.FechaCierre = DateTime.Now;
+                encuesta.DiasTrabajados = DateTime.Now.Day - encuesta.FechaInicio.Value.Day;
                 await _context.SaveChangesAsync();
             }
             return Ok(new ObjectResult<DetalleEncuesta>
@@ -254,12 +253,12 @@ namespace SondeoBackend.Controllers
             {
                 var create = new Local
                 {
+                    Id = local.Id,
                     Nombre = local.Nombre,
                     Direccion = local.Direccion,
                     Latitud = (float)local.Latitud,
                     Longitud = (float)local.Longitud,
                     CanalId = local.Id_canal,
-                    CiudadId = local.CiudadId,
                     Habilitado = local.Habilitado
                 };
                 await _manageLocales.PostLocal(create);
@@ -390,7 +389,6 @@ namespace SondeoBackend.Controllers
                 Direccion = e.Direccion,
                 Latitud = e.Latitud,
                 Longitud = e.Longitud,
-                CiudadId = e.CiudadId,
                 Habilitado = e.Habilitado
             }).ToList();
         }
