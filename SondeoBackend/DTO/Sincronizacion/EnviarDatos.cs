@@ -36,6 +36,11 @@ namespace SondeoBackend.DTO.Sincronizacion
             public bool Habilitado { get; set; }
         }
 
+        public class EnviarLocalPrueba
+        {
+            public List<EnviarLocalesDto>? Locales { get; set; }
+        }
+
         public class EnviarEncuestasDto
         {
             public int Id { get; set; }

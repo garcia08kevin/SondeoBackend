@@ -187,7 +187,7 @@ namespace SondeoBackend.Controllers
         {
             try
             {
-                await PostLocales(data.Locales);
+                //await PostLocales(data.Locales);
                 await PostEncuestas(data.Encuestas);
                 await PostProducto(data.Productos);
                 await PostDetalleEncuesta(data.DetalleEncuestas);
@@ -248,9 +248,9 @@ namespace SondeoBackend.Controllers
 
         [Route("Locales")]
         [HttpPost]
-        public async Task<ActionResult<Local>> PostLocales(List<EnviarLocalesDto> enviarLocales)
+        public async Task<ActionResult<Local>> PostLocales(EnviarLocalPrueba enviarLocales)
         {
-            foreach (EnviarLocalesDto local in enviarLocales)
+            foreach (EnviarLocalesDto local in enviarLocales.Locales)
             {
                 var create = new Local
                 {

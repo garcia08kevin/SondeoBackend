@@ -78,7 +78,7 @@ namespace SondeoBackend.Controllers.UserManagement.Users
         [Route("ChangePassword")]
         public async Task<IActionResult> ChangePassword([FromBody] UserVerification verification)
         {
-            if (ModelState.IsValid)
+            try
             {
                 var user_exist = await _userManager.FindByNameAsync(verification.UserName);
                 if (user_exist == null)
@@ -89,6 +89,10 @@ namespace SondeoBackend.Controllers.UserManagement.Users
                 if (!isCorrect)
                 {
                     return Ok(new UserResult() { Result = false, Respose = "Clave de usuario es incorrecta" });
+                }
+                if (!verification.Password.Equals(verification.ConfirmPassword))
+                {
+                    return Ok(new UserResult() { Result = false, Respose = "Las contraseñas no coinciden" });
                 }
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user_exist);
                 var result = await _userManager.ResetPasswordAsync(user_exist, token, verification.Password);
@@ -107,7 +111,6 @@ namespace SondeoBackend.Controllers.UserManagement.Users
                         _context.Notifications.Add(notificacion);
                         await _context.SaveChangesAsync();
                         await _hubs.Clients.All.SendAsync("Notificacion", notificacion.Mensaje);
-
                     }
                     return Ok(new UserResult()
                     {
@@ -115,12 +118,20 @@ namespace SondeoBackend.Controllers.UserManagement.Users
                         Respose = "La contraseña ha sido cambiada exitosamente"
                     });
                 }
+                return BadRequest(error: new UserResult()
+                {
+                    Result = false,
+                    Respose = "No se pudo cambiar la contraseña"
+                });
             }
-            return BadRequest(error: new UserResult()
+            catch (Exception ex)
             {
-                Result = false,
-                Respose = "No se pudo cambiar la contraseña"
-            });
+                return BadRequest(error: new UserResult()
+                {
+                    Result = false,
+                    Respose = $"No se pudo cambiar la contraseña {ex.Message}"
+                });
+            }         
         }
     }
 }

@@ -10,7 +10,7 @@ namespace SondeoBackend.DTO.UserControl
         public string OldPassword { get; set; }
         [Required]
         public string Password { get; set; }
-        [Required, Compare("Password")]
+        [Required]
         public string ConfirmPassword { get; set; }
     }
 }
