@@ -280,7 +280,7 @@ namespace SondeoBackend.Controllers
             {
                 var create = new Encuesta
                 {
-                    Id = encuesta.Id_encuestador,
+                    Id = encuesta.Id,
                     CustomUserId = encuesta.Id_encuestador,
                     LocalId = encuesta.Id_local,
                     MedicionId = encuesta.Id_medicion,
