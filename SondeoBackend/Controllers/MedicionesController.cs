@@ -98,13 +98,13 @@ namespace SondeoBackend.Controllers
                 await _context.SaveChangesAsync();
                 foreach (Encuesta encuesta in ultimaMedicion.Encuestas)
                 {
-                    var user = await _userManager.FindByIdAsync($"{encuesta.CustomUserId}");
                     var encuestaConDetalle = await _context.Encuestas.Include(e => e.DetalleEncuestas).FirstOrDefaultAsync(m => m.Id == encuesta.Id);
                     var encuestaNueva = new Encuesta
                     {
                         FechaInicio = encuesta.FechaCierre,
-                        FechaCierre = null,
+                        FechaCierre = encuesta.FechaCierre,
                         DiasTrabajados = 0,
+                        Visita = "INICIAL",
                         CustomUserId = encuesta.CustomUserId,
                         LocalId = encuesta.LocalId,
                         MedicionId = medicion.Id,
@@ -116,7 +116,7 @@ namespace SondeoBackend.Controllers
                         var detalleNuevo = new DetalleEncuesta
                         {
                             StockInicial = detalle.StockFinal,
-                            StockFinal = -1,
+                            StockFinal = 0,
                             Compra = 0,
                             Pvd = 0,
                             Pvp = 0,
