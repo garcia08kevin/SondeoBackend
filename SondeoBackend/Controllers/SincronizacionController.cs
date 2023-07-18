@@ -19,6 +19,7 @@ using System.Text;
 using System.Web.WebPages;
 using System.ComponentModel;
 using static AForge.Math.FourierTransform;
+using SondeoBackend.DTO.UserControl;
 
 namespace SondeoBackend.Controllers
 {
@@ -374,6 +375,27 @@ namespace SondeoBackend.Controllers
         #endregion
 
         #region Descargar Datos
+        [HttpGet]
+        [Route("Encuestadores")]
+        public async Task<IActionResult> GetEncuestadores()
+        {
+            var users = await _userManager.Users.Where(e => e.Role.Equals("Encuestador"))
+                .Select(x => new UserDetail
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Lastname = x.Lastname,
+                    Role = x.Role,
+                    Email = x.Email,
+                    UserName = x.UserName,
+                    Alias = x.Alias,
+                    Activado = x.CuentaActiva,
+                    CorreoActivado = x.EmailConfirmed
+
+                }).ToListAsync();
+            return Ok(users);
+        }
+
         [HttpGet("Mediciones")]
         public async Task<ActionResult<IEnumerable<Medicion>>> GetMedicion()
         {
