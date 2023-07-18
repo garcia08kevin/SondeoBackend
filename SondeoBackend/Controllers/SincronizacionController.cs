@@ -169,10 +169,10 @@ namespace SondeoBackend.Controllers
 
         [Route("TransferirEncuesta")]
         [HttpPost]
-        public async Task<IActionResult> TransferirEncuesta(int idEncuesta, int idUsuario)
+        public async Task<IActionResult> TransferirEncuesta(Transferir transferir)
         {
-            var encuesta = await _context.Encuestas.Include(e => e.Medicion).FirstOrDefaultAsync(i => i.Id == idEncuesta);
-            encuesta.CustomUserId = idUsuario;
+            var encuesta = await _context.Encuestas.Include(e => e.Medicion).FirstOrDefaultAsync(i => i.Id == transferir.Id_Encuesta);
+            encuesta.CustomUserId = transferir.Id_encuestador;
             await _context.SaveChangesAsync();
             return Ok(new ObjectResult<Encuesta>
             {

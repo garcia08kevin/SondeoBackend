@@ -4,6 +4,11 @@ namespace SondeoBackend.DTO.Sincronizacion
 {
     public class EnviarDatos
     {
+        public class Transferir
+        {
+            public int Id_encuestador { get; set; }
+            public int Id_Encuesta { get; set; }
+        }
         public class PeticionEncuestas
         {
             public int MedicionId { get; set; }
