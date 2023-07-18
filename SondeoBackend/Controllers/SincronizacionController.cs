@@ -245,7 +245,7 @@ namespace SondeoBackend.Controllers
                         CategoriaId = producto.Id_categoria,
                         MarcaId = producto.Id_marca,
                         PropiedadesId = propiedadConfirmacion == null ? propiedad.Id : propiedadConfirmacion.Id,
-                        Imagen = producto.Foto.IsEmpty() || producto.Foto.Equals("") ? null : Encoding.ASCII.GetBytes(producto.Foto)
+                        Imagen = producto.Foto.IsEmpty() || producto.Foto.Equals("") ? null : Convert.FromBase64String(producto.Foto)
 
                     };
                     _context.Productos.Add(create);
