@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
@@ -87,6 +88,40 @@ namespace SondeoBackend.Controllers
                 Result = true,
                 Respose = "Local Actualizado"
             });
+        }
+
+        [HttpPost]
+        [Route("HabilitarLocal")]
+        public async Task<IActionResult> ActivarUsuario(int id, bool eleccion)
+        {
+            try
+            {
+                var local = await _context.Locales.FindAsync(id);
+                if (local == null)
+                {
+                    return BadRequest(error: new UserResult()
+                    {
+                        Result = false,
+                        Respose = "El local no fue encontrado"
+                    });
+                }
+                local.Habilitado = eleccion ? true : false;
+                await _context.SaveChangesAsync();
+                return Ok(new ObjectResult<CustomUser>()
+                {
+                    Result = true,
+                    Respose = "Se ha actualizado el estado del local correctamente"
+                });
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(error: new UserResult()
+                {
+                    Result = false,
+                    Respose = $"No se pudo activar el usuario {ex.Message}"
+                });
+            }
         }
 
         [Route("Locales")]
