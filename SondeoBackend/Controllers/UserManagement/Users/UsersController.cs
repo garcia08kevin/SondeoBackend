@@ -105,7 +105,7 @@ namespace SondeoBackend.Controllers.UserManagement.Users
                         {
                             Tipo = 1,
                             Fecha = DateTime.Now,
-                            Mensaje = $"El usuario {user_exist.Email} ha activado su cuenta",
+                            Mensaje = $"El usuario {user_exist.UserName} ha activado su cuenta",
                             Identificacion = user_exist.Id
                         };
                         _context.Notifications.Add(notificacion);

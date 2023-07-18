@@ -163,7 +163,7 @@ namespace SondeoBackend.Controllers
             return Ok(new ObjectResult<Medicion>
             {
                 Result = true,
-                Object = medicion
+                Respose = "Se cerro la medicion correctamente"
             });
         }
     }

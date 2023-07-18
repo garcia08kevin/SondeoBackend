@@ -508,20 +508,23 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
         [HttpDelete("Notificaciones/{id}")]
         public async Task<IActionResult> DeleteNotification(int id)
         {
-            if (_context.Notifications == null)
-            {
-                return NotFound();
-            }
             var notification = await _context.Notifications.FindAsync(id);
             if (notification == null)
             {
-                return NotFound();
+                return BadRequest(new UserResult
+                {
+                    Result = false,
+                    Respose = $"la notificacion no exite"
+                });
             }
-
             _context.Notifications.Remove(notification);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(new UserResult
+            {
+                Result = true,
+                Respose = "Notificacion eliminada"
+            });
         }
         #endregion
     }

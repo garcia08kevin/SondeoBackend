@@ -193,6 +193,16 @@ namespace SondeoBackend.Controllers
                 await PostEncuestas(data.Encuestas);
                 await PostProducto(data.Productos);
                 await PostDetalleEncuesta(data.DetalleEncuestas);
+                var notificacion = new Notification()
+                {
+                    Tipo = 2,
+                    Fecha = DateTime.Now,
+                    Mensaje = $"El usuario ha sincronizados sus datos",
+                    Identificacion = user_exist.Id
+                };
+                _context.Notifications.Add(notificacion);
+                await _context.SaveChangesAsync();
+                await _hubs.Clients.All.SendAsync("Notificacion", notificacion.Mensaje);
                 return Ok(new ObjectResult<SendSyncDto>()
                 {
                     Result = true,
