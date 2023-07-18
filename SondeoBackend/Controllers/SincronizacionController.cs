@@ -198,7 +198,7 @@ namespace SondeoBackend.Controllers
                     Tipo = 2,
                     Fecha = DateTime.Now,
                     Mensaje = $"El usuario ha sincronizados sus datos",
-                    Identificacion = user_exist.Id
+                    Identificacion = 2
                 };
                 _context.Notifications.Add(notificacion);
                 await _context.SaveChangesAsync();
