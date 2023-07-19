@@ -101,7 +101,6 @@ namespace SondeoBackend.Controllers
         public async Task<IActionResult> AgregarProductoEncuesta(RegistroDetalle registro)
         {
             var encuesta = await _context.Encuestas.Include(e => e.CustomUser).FirstOrDefaultAsync(i => i.Id == registro.EncuestaId);
-            var lastDetalleEncuesta = await _context.DetalleEncuestas.OrderByDescending(m => m.Id).FirstOrDefaultAsync();
             var detalleEncuesta = new DetalleEncuesta
             {
                 StockInicial = registro.StockInicial,
