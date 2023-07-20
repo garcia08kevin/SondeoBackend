@@ -325,8 +325,9 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
             "0123456789",
             "!@$?_-"
         };
-
-            Random rand = new Random(Environment.TickCount);
+            byte[] seed = new byte[4];
+            int secureSeed = BitConverter.ToInt32(seed, 0);
+            Random rand = new Random(secureSeed);
             List<char> chars = new List<char>();
 
             if (opts.RequireUppercase)
