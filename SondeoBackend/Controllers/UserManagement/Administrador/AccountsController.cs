@@ -43,7 +43,6 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
         {
             if (ModelState.IsValid)
             {
-                var alias = "";
                 var user_exist = await _userManager.FindByNameAsync(user.UserName);
                 if (user_exist != null)
                 {
@@ -64,21 +63,13 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
                 }
                 else
                 {
-                    if (user.Role.Equals("Administrador"))
-                    {
-                        alias = $"{user.Lastname[0]}{user.Name}_Admin";
-                    }
-                    else
-                    {
-                        alias = $"{user.Lastname[0]}{user.Name}_Encue";
-                    }
                     var new_user = new CustomUser()
                     {
                         Email = user.Email,
                         UserName = user.UserName,
                         Name = user.Name,
                         Lastname = user.Lastname,
-                        Alias = alias.ToUpper(),
+                        Alias = user.Role.Equals("Administrador") ? $"{user.Lastname[0]}{user.Name}_Admin".ToUpper() : $"{user.Lastname[0]}{user.Name}_Encue".ToUpper(),
                         Role = user.Role
                     };
                     var pass_generate = GenerateRandomPassword();
@@ -162,50 +153,48 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
             });
         }
 
-        [HttpGet]
-        [Route("GetAllUserByRole")]
-        public async Task<IActionResult> GetAllUserByRole(string role)
-        {
-            List<CustomUser> users = new List<CustomUser>();
-            var usuariosActivados = await _userManager.Users.Where(e => e.CuentaActiva == true).ToListAsync();
-            for (int i = 0; i < usuariosActivados.Count; i++)
-            {
-                var userRole = await _userManager.GetRolesAsync(usuariosActivados[i]);
-                if (userRole[0].Equals(role))
-                {
-                    users.Add(usuariosActivados[i]);
-                }
-            }
-            return Ok(users);
-        }
+        //[HttpGet]
+        //[Route("GetAllUserByRole")]
+        //public async Task<IActionResult> GetAllUserByRole(string role)
+        //{
+        //    List<CustomUser> users = new List<CustomUser>();
+        //    var usuariosActivados = await _userManager.Users.Where(e => e.CuentaActiva == true).ToListAsync();
+        //    for (int i = 0; i < usuariosActivados.Count; i++)
+        //    {
+        //        var userRole = await _userManager.GetRolesAsync(usuariosActivados[i]);
+        //        if (userRole[0].Equals(role))
+        //        {
+        //            users.Add(usuariosActivados[i]);
+        //        }
+        //    }
+        //    return Ok(users);
+        //}
 
-        [HttpPost]
-        [Route("CreateRole")]
-        public async Task<IActionResult> CreateRoles(string name)
-        {
-            var roleExist = await _roleManager.RoleExistsAsync(name);
-            if (!roleExist)
-            {
-                var roleResult = await _roleManager.CreateAsync(new CustomRole(name));
-                if (roleResult.Succeeded)
-                {
-                    _logger.LogInformation($"El rol {name} ha sido a agregado correctamente");
-                    return Ok(new
-                    {
-                        result = $"El rol {name} ha sido a agregado correctamente"
-                    });
-                }
-                else
-                {
-                    _logger.LogInformation($"El rol {name} no pudo ser creado");
-                    return Ok(new
-                    {
-                        error = $"El rol {name} no pudo ser creado"
-                    });
-                }
-            }
-            return BadRequest(new { error = "El Rol no exite" });
-        }
+        //[HttpPost]
+        //[Route("CreateRole")]
+        //public async Task<IActionResult> CreateRoles(string name)
+        //{
+        //    var roleExist = await _roleManager.RoleExistsAsync(name);
+        //    if (!roleExist)
+        //    {
+        //        var roleResult = await _roleManager.CreateAsync(new CustomRole(name));
+        //        if (roleResult.Succeeded)
+        //        {
+        //            return Ok(new
+        //            {
+        //                result = $"El rol {name} ha sido a agregado correctamente"
+        //            });
+        //        }
+        //        else
+        //        {
+        //            return Ok(new
+        //            {
+        //                error = $"El rol {name} no pudo ser creado"
+        //            });
+        //        }
+        //    }
+        //    return BadRequest(new { error = "El Rol no exite" });
+        //}
 
         [HttpPost]
         [Route("ActivarUsuario")]

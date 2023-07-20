@@ -30,18 +30,16 @@ namespace SondeoBackend.Controllers
         private readonly DataContext _context;
         private readonly IHubContext<Hubs> _hubs;
         private readonly UserManager<CustomUser> _userManager;
-        private readonly AssignId _assignId;
         private readonly ManageProductosController _manageProductos;
         private readonly ManageLocalesController _manageLocales;
 
-        public SincronizacionController(DataContext context, ManageLocalesController manageLocales, ManageProductosController manageProductos, IHubContext<Hubs> hubs, UserManager<CustomUser> userManager, AssignId assignId)
+        public SincronizacionController(DataContext context, ManageLocalesController manageLocales, ManageProductosController manageProductos, IHubContext<Hubs> hubs, UserManager<CustomUser> userManager)
         {
             _userManager = userManager;
             _manageProductos = manageProductos;
             _manageLocales = manageLocales;
             _hubs = hubs;
             _context = context;
-            _assignId = assignId;
         }        
 
         #region Sincronizar Encuesta        

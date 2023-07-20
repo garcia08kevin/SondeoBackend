@@ -18,11 +18,9 @@ namespace SondeoBackend.Controllers
     {
         private readonly DataContext _context;
         private readonly UserManager<CustomUser> _userManager;
-        private readonly AssignId _assignId;
 
-        public MedicionesController(DataContext context, UserManager<CustomUser> userManager, AssignId assignId)
+        public MedicionesController(DataContext context, UserManager<CustomUser> userManager)
         {
-            _assignId = assignId;
             _userManager = userManager;
             _context = context;
         }

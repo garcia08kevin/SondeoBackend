@@ -12,6 +12,7 @@ using SondeoBackend.Models;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 //var myArrowSpecificOrigins = "myArrowSpecificOrigins";
@@ -42,6 +43,8 @@ builder.Services.AddCors(options =>
 //builder.Services.AddDbContext<DataContext>(optionsAction: options =>
 //    options.UseSqlServer(builder.Configuration.GetConnectionString(name: "DefaultConnection")));
 
+var githubSecretConnectionString = builder.Configuration["CONNECTION_STRING"]; // Read the connection string from GitHub secret
+
 builder.Services.AddDbContext<DataContext>(optionsAction: options =>
 {
     //options.UseSqlServer(builder.Configuration.GetConnectionString(name: "Conexion2"),
@@ -49,7 +52,7 @@ builder.Services.AddDbContext<DataContext>(optionsAction: options =>
     //    {
     //        sqlOptions.EnableRetryOnFailure(maxRetryCount: 10, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null);
     //    });
-    options.UseNpgsql(builder.Configuration.GetConnectionString(name: "Conexion2"));
+    options.UseNpgsql(githubSecretConnectionString);
 });
 
 builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection(key: "JwtConfig"));
