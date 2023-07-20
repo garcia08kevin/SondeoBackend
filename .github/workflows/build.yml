@@ -44,7 +44,7 @@ jobs:
         shell: powershell
         run: |
           .\.sonar\scanner\dotnet-sonarscanner begin /k:"capstone_proyecto-capstone" /o:"capstone" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
-          dotnet tool install --global dotnet-coverage
+          dotnet tool install --global JetBrains.dotCover.GlobalTool
           dotnet build --no-incremental
-          dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
-          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          dotnet dotcover test --dcReportType=HTML
+          .\.sonar\scanner\dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
