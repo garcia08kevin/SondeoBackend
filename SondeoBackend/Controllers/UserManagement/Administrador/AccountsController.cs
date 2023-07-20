@@ -271,7 +271,6 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
             var user = await _userManager.FindByIdAsync(Convert.ToString(id));
             if (user == null)
             {
-                _logger.LogInformation($"El usuario no exite");
                 return BadRequest(new UserResult
                 {
                     Result = false,
@@ -289,7 +288,6 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
             }
             else
             {
-                _logger.LogInformation("No se pudo eliminar el usuario");
                 return BadRequest(new UserResult { Result = false, Respose = "No se pudo eliminar el usuario" });
             }
         }
@@ -394,13 +392,11 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
             {
-                _logger.LogInformation($"El usuario {email} no exite");
                 return BadRequest(new { error = $"El usuario {email} no exite" });
             }
             var roleExist = await _roleManager.RoleExistsAsync(roleName);
             if (!roleExist)
             {
-                _logger.LogInformation($"El rol {roleName} no exite");
                 return BadRequest(new { error = $"El rol {roleName} no exite" });
             }
             var result = await _userManager.AddToRoleAsync(user, roleName);
@@ -413,7 +409,6 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
             }
             else
             {
-                _logger.LogInformation("No se pudo agregar el rol");
                 return BadRequest(new { error = "No se pudo agregar el rol" });
             }
         }
@@ -425,13 +420,11 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
             {
-                _logger.LogInformation($"El usuario {email} no exite");
                 return BadRequest(new { error = $"El usuario {email} no exite" });
             }
             var roleExist = await _roleManager.RoleExistsAsync(roleName);
             if (!roleExist)
             {
-                _logger.LogInformation($"El rol {roleName} no exite");
                 return BadRequest(new { error = $"El rol {roleName} no exite" });
             }
             var result = await _userManager.RemoveFromRoleAsync(user, roleName);
@@ -444,7 +437,6 @@ namespace SondeoBackend.Controllers.UserManagement.Administrador
             }
             else
             {
-                _logger.LogInformation("No se pudo retirar el rol");
                 return BadRequest(new { error = "No se pudo retirar el rol" });
             }
         }

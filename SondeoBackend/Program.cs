@@ -43,8 +43,6 @@ builder.Services.AddCors(options =>
 //builder.Services.AddDbContext<DataContext>(optionsAction: options =>
 //    options.UseSqlServer(builder.Configuration.GetConnectionString(name: "DefaultConnection")));
 
-var githubSecretConnectionString = builder.Configuration["CONNECTION_STRING"]; // Read the connection string from GitHub secret
-
 builder.Services.AddDbContext<DataContext>(optionsAction: options =>
 {
     //options.UseSqlServer(builder.Configuration.GetConnectionString(name: "Conexion2"),
@@ -52,7 +50,7 @@ builder.Services.AddDbContext<DataContext>(optionsAction: options =>
     //    {
     //        sqlOptions.EnableRetryOnFailure(maxRetryCount: 10, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null);
     //    });
-    options.UseNpgsql(githubSecretConnectionString);
+    options.UseNpgsql(builder.Configuration.GetConnectionString(name: "Conexion2"));
 });
 
 builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection(key: "JwtConfig"));
