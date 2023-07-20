@@ -109,8 +109,6 @@ var options = new JsonSerializerOptions
     ReferenceHandler = ReferenceHandler.Preserve
 };
 
-builder.Services.AddTransient<AssignId>();
-
 builder.Services.AddTransient<ManageProductosController>();
 
 builder.Services.AddMvc().AddControllersAsServices().AddNewtonsoftJson(options =>
