@@ -38,7 +38,7 @@ namespace SondeoBackend.Controllers
                 Nombre = e.Nombre,
                 Canal = e.Canal.NombreCanal,
                 Direccion = e.Direccion,
-                Ciudad = Ciudad = e.Encuestas.Count == 0 ? "Sin ciudad ni encuesta Asignada" : e.Encuestas.FirstOrDefault().Medicion.Ciudad.NombreCiudad,
+                Ciudad = e.Encuestas.Count == 0 ? "Sin ciudad ni encuesta Asignada" : e.Encuestas.FirstOrDefault().Medicion.Ciudad.NombreCiudad,
                 Habilitado = e.Habilitado
                 
             }).ToList();
@@ -54,7 +54,7 @@ namespace SondeoBackend.Controllers
                 Nombre = e.Nombre,
                 Canal = e.Canal.NombreCanal,
                 Direccion = e.Direccion,
-                Ciudad = Ciudad = e.Encuestas.Count == 0 ? "Sin ciudad ni encuesta Asignada" : e.Encuestas.FirstOrDefault().Medicion.Ciudad.NombreCiudad,
+                Ciudad = e.Encuestas.Count == 0 ? "Sin ciudad ni encuesta Asignada" : e.Encuestas.FirstOrDefault().Medicion.Ciudad.NombreCiudad,
                 Habilitado = e.Habilitado
 
             }).FirstOrDefault(i => i.Id == id);
