@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AnalysisConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.sonarsource.com/msbuild/integration/2015/1">
-  <SonarConfigDir>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\SondeoBackend\.sonarqube\conf</SonarConfigDir>
-  <SonarOutputDir>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\SondeoBackend\.sonarqube\out</SonarOutputDir>
-  <SonarBinDir>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\SondeoBackend\.sonarqube\bin</SonarBinDir>
-  <SonarScannerWorkingDirectory>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\SondeoBackend</SonarScannerWorkingDirectory>
+  <SonarConfigDir>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\.sonarqube\conf</SonarConfigDir>
+  <SonarOutputDir>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\.sonarqube\out</SonarOutputDir>
+  <SonarBinDir>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\.sonarqube\bin</SonarBinDir>
+  <SonarScannerWorkingDirectory>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend</SonarScannerWorkingDirectory>
   <HasBeginStepCommandLineCredentials>true</HasBeginStepCommandLineCredentials>
   <SonarQubeHostUrl>http://localhost:9000</SonarQubeHostUrl>
   <SonarQubeVersion>9.8.0.63668</SonarQubeVersion>
-  <SonarProjectKey>SondeoBackend</SonarProjectKey>
+  <SonarProjectKey>SondeoApi</SonarProjectKey>
   <AdditionalConfig>
     <ConfigSetting Id="BuildUri" />
     <ConfigSetting Id="TfsUri" />
     <ConfigSetting Id="VsCoverageConverterToolPath" />
     <ConfigSetting Id="UnchangedFilesPath" />
-    <ConfigSetting Id="sonar.pullrequest.cache.basepath" Value="C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\SondeoBackend" />
+    <ConfigSetting Id="sonar.pullrequest.cache.basepath" Value="C:\Users\garci\source\repos\garcia08kevin\SondeoBackend" />
     <ConfigSetting Id="settings.file.path" Value="C:\Users\garci\.dotnet\tools\.store\dotnet-sonarscanner\5.13.0\dotnet-sonarscanner\5.13.0\tools\net5.0\any\SonarQube.Analysis.xml" />
   </AdditionalConfig>
   <ServerSettings>
@@ -119,13 +119,13 @@
     <Property Name="sonar.core.id">147B411E-AYmsjRbH4nx8WKFsvDFQ</Property>
   </ServerSettings>
   <LocalSettings>
-    <Property Name="sonar.cs.vscoveragexml.reportsPaths">coverage.xml</Property>
+    <Property Name="sonar.cs.opencover.reportsPaths">coverage.xml</Property>
   </LocalSettings>
   <AnalyzersSettings>
     <AnalyzerSettings>
       <Language>cs</Language>
-      <RulesetPath>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\SondeoBackend\.sonarqube\conf\Sonar-cs.ruleset</RulesetPath>
-      <DeactivatedRulesetPath>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\SondeoBackend\.sonarqube\conf\Sonar-cs-none.ruleset</DeactivatedRulesetPath>
+      <RulesetPath>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\.sonarqube\conf\Sonar-cs.ruleset</RulesetPath>
+      <DeactivatedRulesetPath>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\.sonarqube\conf\Sonar-cs-none.ruleset</DeactivatedRulesetPath>
       <AnalyzerPlugins>
         <AnalyzerPlugin Key="csharp" Version="8.50.0.58025" StaticResourceName="SonarAnalyzer-8.50.0.58025.zip">
           <AssemblyPaths>
@@ -147,13 +147,13 @@
         </AnalyzerPlugin>
       </AnalyzerPlugins>
       <AdditionalFilePaths>
-        <Path>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\SondeoBackend\.sonarqube\conf\cs\SonarLint.xml</Path>
+        <Path>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\.sonarqube\conf\cs\SonarLint.xml</Path>
       </AdditionalFilePaths>
     </AnalyzerSettings>
     <AnalyzerSettings>
       <Language>vbnet</Language>
-      <RulesetPath>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\SondeoBackend\.sonarqube\conf\Sonar-vbnet.ruleset</RulesetPath>
-      <DeactivatedRulesetPath>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\SondeoBackend\.sonarqube\conf\Sonar-vbnet-none.ruleset</DeactivatedRulesetPath>
+      <RulesetPath>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\.sonarqube\conf\Sonar-vbnet.ruleset</RulesetPath>
+      <DeactivatedRulesetPath>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\.sonarqube\conf\Sonar-vbnet-none.ruleset</DeactivatedRulesetPath>
       <AnalyzerPlugins>
         <AnalyzerPlugin Key="csharp" Version="8.50.0.58025" StaticResourceName="SonarAnalyzer-8.50.0.58025.zip">
           <AssemblyPaths>
@@ -175,7 +175,7 @@
         </AnalyzerPlugin>
       </AnalyzerPlugins>
       <AdditionalFilePaths>
-        <Path>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\SondeoBackend\.sonarqube\conf\vbnet\SonarLint.xml</Path>
+        <Path>C:\Users\garci\source\repos\garcia08kevin\SondeoBackend\.sonarqube\conf\vbnet\SonarLint.xml</Path>
       </AdditionalFilePaths>
     </AnalyzerSettings>
   </AnalyzersSettings>

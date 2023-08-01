@@ -32,6 +32,11 @@ namespace SondeoBackend.Controllers
         private readonly UserManager<CustomUser> _userManager;
         private readonly ManageProductosController _manageProductos;
         private readonly ManageLocalesController _manageLocales;
+        private DataContext dataContext;
+        private object value1;
+        private object value2;
+        private Microsoft.AspNet.SignalR.IHubContext<Hubs> hubContext;
+        private UserManager<CustomUser> userManager;
 
         public SincronizacionController(DataContext context, ManageLocalesController manageLocales, ManageProductosController manageProductos, IHubContext<Hubs> hubs, UserManager<CustomUser> userManager)
         {
@@ -40,7 +45,16 @@ namespace SondeoBackend.Controllers
             _manageLocales = manageLocales;
             _hubs = hubs;
             _context = context;
-        }        
+        }
+
+        public SincronizacionController(DataContext dataContext, object value1, object value2, Microsoft.AspNet.SignalR.IHubContext<Hubs> hubContext, UserManager<CustomUser> userManager)
+        {
+            this.dataContext = dataContext;
+            this.value1 = value1;
+            this.value2 = value2;
+            this.hubContext = hubContext;
+            this.userManager = userManager;
+        }
 
         #region Sincronizar Encuesta        
 
